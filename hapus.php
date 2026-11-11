@@ -10,6 +10,6 @@ if ($id) {
     $stmt->execute([$id]);
 }
 
-header("Location: index.php");
+header("Location: ../admin/index.php");
 exit;
 ?>

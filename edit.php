@@ -5,7 +5,7 @@ include 'koneksi.php';
 
 $id = $_GET['id'] ?? '';
 if (!$id) {
-    header("Location: index.php");
+    header("Location: ../admin/index.php");
     exit;
 }
 
@@ -15,7 +15,7 @@ $stmt->execute([$id]);
 $peminjaman = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$peminjaman) {
-    header("Location: index.php");
+    header("Location: ../admin/index.php");
     exit;
 }
 
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$tgl_pinjam, $jam_mulai, $jam_selesai, $tujuan, $status, $id_pengguna, $id_ruangan, $id]);
 
-    header("Location: index.php");
+    header("Location: ../admin/index.php");
     exit;
 }
 ?>
@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </select><br><br>
 
         <button type="submit">Update</button>
-        <a href="index.php">Batal</a>
+        <a href="../admin/index.php">Batal</a>
     </form>
 </body>
 </html>

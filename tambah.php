@@ -183,7 +183,7 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
     <nav class="navbar navbar-expand-lg navbar-dark navbar-horizon sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="index.php">
-                <img src="path/to/logo.png" alt="Logo" width="40" height="40" class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
+                <img src="asset/logohorizon-removebg-preview.png" alt="Logo" width="50" height="50" class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
                 <div>
                     HORIZON UNIVERSITY
                     <small>KARAWANG</small>
