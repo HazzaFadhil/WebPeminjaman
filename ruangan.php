@@ -40,6 +40,7 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,8 +50,9 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts (Poppins) -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -65,7 +67,7 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
         .navbar-horizon {
             background-color: var(--horizon-maroon);
             padding: 12px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
         }
 
         .navbar-brand {
@@ -89,7 +91,8 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
             transition: all 0.3s ease;
         }
 
-        .nav-link:hover, .nav-link.active {
+        .nav-link:hover,
+        .nav-link.active {
             background-color: #ffffff !important;
             color: var(--horizon-maroon) !important;
             font-weight: 600;
@@ -101,14 +104,14 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
             color: white;
             padding: 40px 0;
             margin-bottom: 30px;
-            box-shadow: inset 0 -5px 15px rgba(0,0,0,0.2);
+            box-shadow: inset 0 -5px 15px rgba(0, 0, 0, 0.2);
         }
 
         /* Card Ruangan Styling (Sesuai Gambar 3) */
         .room-card {
             border: none;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             overflow: hidden;
             background: #fff;
@@ -117,7 +120,7 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
 
         .room-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
         .room-header-bg {
@@ -174,18 +177,40 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
             background: #fff;
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             margin-bottom: 35px;
+        }
+
+        /* Definisi Animasi Muncul Perlahan (Fade In & Slide Up) */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Terapkan animasi ke setiap card ruangan */
+        .room-card-animate {
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+            /* Sembunyikan di awal sebelum animasi berjalan */
         }
     </style>
 </head>
+
 <body>
 
     <!-- NAVBAR UTAMA -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-horizon sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="index.php">
-                <img src="asset/logohorizon-removebg-preview.png" alt="Logo" width="50" height="50" class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
+                <img src="asset/logohorizon-removebg-preview.png" alt="Logo" width="50" height="50"
+                    class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
                 <div>
                     HORIZON UNIVERSITY
                     <small>KARAWANG</small>
@@ -199,7 +224,8 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
                     <li class="nav-item"><a class="nav-link" href="index.php">Beranda</a></li>
                     <li class="nav-item"><a class="nav-link active" href="ruangan.php">Ruangan</a></li>
                     <li class="nav-item"><a class="nav-link" href="tambah.php">Peminjaman</a></li>
-                    <li class="nav-item ms-lg-2"><a class="nav-link text-white" href="login.php"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a></li>
+                    <li class="nav-item ms-lg-2"><a class="nav-link text-white" href="login.php"><i
+                                class="fa-solid fa-right-to-bracket me-1"></i> Login</a></li>
                 </ul>
             </div>
         </div>
@@ -215,14 +241,16 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- KONTEN UTAMA -->
     <div class="container mb-5">
-        
+
         <!-- SEARCH & FILTER FORM (Sesuai Gambar 3) -->
         <form method="GET" action="ruangan.php" class="filter-container">
             <div class="row g-3 align-items-center">
                 <div class="col-lg-8">
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" name="cari" class="form-control border-start-0 ps-0" placeholder="Cari nama ruangan atau fasilitas..." value="<?= htmlspecialchars($keyword) ?>">
+                        <span class="input-group-text bg-white border-end-0"><i
+                                class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="cari" class="form-control border-start-0 ps-0"
+                            placeholder="Cari nama ruangan atau fasilitas..." value="<?= htmlspecialchars($keyword) ?>">
                     </div>
                 </div>
                 <div class="col-lg-3">
@@ -236,7 +264,8 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
                     </select>
                 </div>
                 <div class="col-lg-1">
-                    <button type="submit" class="btn btn-danger w-100" style="background-color: var(--horizon-maroon);">Cari</button>
+                    <button type="submit" class="btn btn-danger w-100"
+                        style="background-color: var(--horizon-maroon);">Cari</button>
                 </div>
             </div>
         </form>
@@ -244,8 +273,13 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
         <!-- GRID KARTU RUANGAN -->
         <div class="row g-4">
             <?php if (count($list_ruangan) > 0): ?>
-                <?php foreach ($list_ruangan as $row): ?>
-                    <div class="col-md-4">
+                <?php
+                $index = 0; // Inisialisasi penghitung untuk delay
+                foreach ($list_ruangan as $row):
+                    $delay = $index * 0.1; // Setiap card berikutnya akan jeda 0.1 detik
+                    ?>
+                    <!-- Tambahkan kelas animasi dan style delay di sini -->
+                    <div class="col-md-4 room-card-animate" style="animation-delay: <?= $delay; ?>s;">
                         <div class="room-card">
                             <div class="room-header-bg d-flex justify-content-between align-items-center">
                                 <span><?= htmlspecialchars($row['nama_ruangan']) ?></span>
@@ -253,13 +287,16 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                             <div class="room-body">
                                 <p class="room-info mb-2">
-                                    <i class="fa-solid fa-location-dot"></i> <strong><?= htmlspecialchars($row['nama_gedung']) ?></strong> 
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <strong><?= htmlspecialchars($row['nama_gedung']) ?></strong>
                                 </p>
                                 <p class="room-info mb-2">
-                                    <i class="fa-solid fa-users"></i> Kapasitas: <strong><?= htmlspecialchars($row['kapasitas']) ?> orang</strong>
+                                    <i class="fa-solid fa-users"></i> Kapasitas:
+                                    <strong><?= htmlspecialchars($row['kapasitas']) ?> orang</strong>
                                 </p>
                                 <p class="room-info mb-3">
-                                    <i class="fa-solid fa-couch"></i> Fasilitas: <?= htmlspecialchars($row['jenis_fasilitas']) ?>
+                                    <i class="fa-solid fa-couch"></i> Fasilitas:
+                                    <?= htmlspecialchars($row['jenis_fasilitas']) ?>
                                 </p>
                                 <div class="d-flex justify-content-between align-items-center mt-4 pt-2 border-top">
                                     <span class="badge-available">
@@ -272,7 +309,10 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                         </div>
                     </div>
-                <?php endforeach; ?>
+                    <?php
+                    $index++;
+                endforeach;
+                ?>
             <?php else: ?>
                 <div class="col-12 text-center py-5">
                     <div class="alert alert-warning py-4">
@@ -290,4 +330,5 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
