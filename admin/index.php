@@ -1,9 +1,18 @@
 <!-- Tampilkan data peminjaman menggunakan perintah SELECT dengan teknik JOIN -->
 
 <?php
-include '../koneksi.php';
+session_start();
 
-// Query JOIN dari 4 tabel
+// 1. Cek Keamanan RBAC (Pastikan hanya admin yang bisa masuk)
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+    header("Location: ../login.php?pesan=akses_ditolak");
+    exit;
+}
+
+// 2. Panggil file koneksi database cukup SEKALI saja di atas
+require_once '../koneksi.php';
+
+// 3. Ambil data pencarian dan jalankan query JOIN
 $cari = $_GET['cari'] ?? '';
 if ($cari) {
     $query = "SELECT p.*, pg.nama_ormawa, r.nama_ruangan, g.nama_gedung 

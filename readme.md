@@ -60,3 +60,7 @@ perubahan pada struktur folder dan file, yaitu admin dan user.
 lalu hari ini akan belajar RBAC dan membuat Register dan Login, jadi saya menambahkan register.php , login.php , 404.php.
 
 dan dikhawatirkan akan error pada website.
+
+ketika nanti nambahin RBAC didalam website ini pastiin table didatabase nya udah memiliki kolom role bertipe varchar(20) agar bisa membedakan hak akses admin dan mahasiswa.
+
+
