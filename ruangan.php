@@ -213,7 +213,7 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
                     class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
                 <div>
                     HORIZON UNIVERSITY
-                    <small>KARAWANG</small>
+                    <small></small>
                 </div>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

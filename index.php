@@ -155,7 +155,7 @@
                 <img src="asset/logohorizon-removebg-preview.png" alt="Logo Horizon University" width="50" height="50" class="me-2 d-inline-block align-text-top object-fit-contain">
                 <div>
                     HORIZON UNIVERSITY
-                    <small>KARAWANG</small>
+                    <small></small>
                 </div>
             </a>
 
