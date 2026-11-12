@@ -52,3 +52,11 @@ Jam Mulai & Jam Selesai: Input bertipe type="time".
 Tujuan Penggunaan: Menggunakan elemen <textarea>.
 
 Tombol "Kirim Pengajuan": Bertipe type="submit" untuk mengeksekusi query INSERT INTO Peminjaman ke database dengan status default 'Pending'.
+
+=======================================================================================
+
+perubahan pada struktur folder dan file, yaitu admin dan user.
+
+lalu hari ini akan belajar RBAC dan membuat Register dan Login, jadi saya menambahkan register.php , login.php , 404.php.
+
+dan dikhawatirkan akan error pada website.
