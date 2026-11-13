@@ -1,7 +1,7 @@
 <!-- Jalankan query DELETE berdasarkan ID. -->
 
 <?php
-include 'koneksi.php';
+include '../koneksi.php';
 
 $id = $_GET['id'] ?? '';
 

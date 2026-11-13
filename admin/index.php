@@ -86,8 +86,8 @@ $data_peminjaman = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td><?= htmlspecialchars($row['tujuan']); ?></td>
                         <td><?= htmlspecialchars($row['status']); ?></td>
                         <td>
-                            <a href="../edit.php?id=<?= $row['id_peminjaman']; ?>">Edit</a> |
-                            <a href="../hapus.php?id=<?= $row['id_peminjaman']; ?>"
+                            <a href="edit.php?id=<?= $row['id_peminjaman']; ?>">Edit</a> |
+                            <a href="hapus.php?id=<?= $row['id_peminjaman']; ?>"
                                 onclick="return confirm('Yakin ingin menghapus data ini?')">Hapus</a>
                         </td>
                     </tr>

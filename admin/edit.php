@@ -1,7 +1,7 @@
 <!-- Buat form HTML sederhana dengan elemen <select> dropdown untuk memilih ruangan dan pengguna, lalu simpan menggunakan query INSERT / UPDATE. -->
 
 <?php
-include 'koneksi.php';
+include '../koneksi.php';
 
 $id = $_GET['id'] ?? '';
 if (!$id) {
