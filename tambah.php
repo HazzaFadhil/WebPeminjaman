@@ -1,4 +1,5 @@
 <?php
+session_start();
 // Panggil file koneksi database
 require_once 'koneksi.php';
 
@@ -32,7 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$id_peminjaman, $tgl_pengajuan, $tgl_pinjam, $jam_mulai, $jam_selesai, $tujuan, $status, $id_pengguna, $id_ruangan]);
             
-            $pesan_sukses = "Pengajuan peminjaman berhasil dikirim! Status saat ini: Pending.";
+            // BARU: Flash message + Redirect ke progress.php
+            $_SESSION['flash_sukses'] = "Pengajuan peminjaman berhasil dikirim! Status saat ini: Pending.";
+            header("Location: progress.php");
+            exit;
         } catch (PDOException $e) {
             $pesan_error = "Gagal menyimpan data: " . $e->getMessage();
         }
@@ -75,7 +79,7 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
         .navbar-horizon {
             background-color: var(--horizon-maroon);
             padding: 12px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
         }
 
         .navbar-brand {
@@ -99,7 +103,8 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
             transition: all 0.3s ease;
         }
 
-        .nav-link:hover, .nav-link.active {
+        .nav-link:hover,
+        .nav-link.active {
             background-color: #ffffff !important;
             color: var(--horizon-maroon) !important;
             font-weight: 600;
@@ -175,6 +180,13 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(128, 0, 0, 0.4);
         }
+
+        .form-select {
+            white-space: nowrap;
+            overflow: hidden;
+  text-overflow: ellipsis;
+            padding-right: 45px !important;
+}
     </style>
 </head>
 <body>
@@ -186,7 +198,7 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                 <img src="asset/logohorizon-removebg-preview.png" alt="Logo" width="50" height="50" class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
                 <div>
                     HORIZON UNIVERSITY
-                    <small>KARAWANG</small>
+                    <small>INDONESIA</small>
                 </div>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -197,6 +209,9 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                     <li class="nav-item"><a class="nav-link" href="index.php">Beranda</a></li>
                     <li class="nav-item"><a class="nav-link" href="ruangan.php">Ruangan</a></li>
                     <li class="nav-item"><a class="nav-link active" href="tambah.php">Peminjaman</a></li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="nav-link btn btn-progress" href="progress.php">Progress</a>
+                    </li>
                     <li class="nav-item ms-lg-2"><a class="nav-link text-white" href="login.php"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a></li>
                 </ul>
             </div>
@@ -327,6 +342,4 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5

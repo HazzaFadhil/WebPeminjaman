@@ -2,7 +2,7 @@
 
 <?php
 $host = 'localhost';
-$dbname = 'WebPeminjaman'; // Sesuaikan dengan nama database Anda
+$dbname = 'db_peminjaman_kampus'; // Sesuaikan dengan nama database Anda
 $username = 'root';
 $password = ''; // Kosongkan jika pakai XAMPP default
 

@@ -155,7 +155,7 @@
                 <img src="asset/logohorizon-removebg-preview.png" alt="Logo Horizon University" width="50" height="50" class="me-2 d-inline-block align-text-top object-fit-contain">
                 <div>
                     HORIZON UNIVERSITY
-                    <small></small>
+                    <small>INDONESIA</small>
                 </div>
             </a>
 
@@ -175,6 +175,10 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="tambah.php">Peminjaman</a>
+                    </li>
+                    <!-- ✅ MENU PROGRESS BARU DITAMBAHKAN DISINI -->
+                    <li class="nav-item">
+                    <a class="nav-link" href="progress.php">Progress</a>
                     </li>
                     <li class="nav-item ms-lg-2">
                         <a class="nav-link text-white" href="login.php">

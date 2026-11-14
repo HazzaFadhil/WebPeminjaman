@@ -1,0 +1,196 @@
+<?php
+session_start();
+require_once "koneksi.php";
+
+try {
+    // Menggabungkan tabel peminjaman (p) dan tabel ruangan (r)
+    $sql = "SELECT p.*, r.nama_ruangan 
+            FROM peminjaman p 
+            LEFT JOIN ruangan r ON p.id_ruangan = r.id_ruangan 
+            WHERE p.status = 'Pending' 
+            ORDER BY p.tgl_pinjam DESC";
+            
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
+} catch (PDOException $e) {
+    die("Error Query: " . $e->getMessage());
+}
+?>
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Peminjaman | Horizon University</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        :root {
+            --maroon: #800000;
+            --horizon-dark-maroon: #5a0000;
+        }
+        .navbar-horizon {
+    background-color: var(--maroon);
+    padding: 12px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .navbar-brand small {
+            display: block;
+            font-size: 0.65rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            margin: 0 5px;
+            padding: 8px 18px !important;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover,
+.nav-link.active {
+    background-color: #ffffff !important;
+    color: var(--maroon) !important;
+    font-weight: 600;
+}
+
+
+        /* ======================= */
+        .btn-progress {
+            background-color: white;
+            color: var(--maroon);
+            border-radius: 30px;
+            font-weight: 700;
+        }
+
+        
+        .badge-pending {
+            background-color: var(--light-red);
+            color: var(--maroon);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-weight: 600;
+        }
+        .card-pinjam {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        .icon-kalender {
+            background-color: var(--maroon);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bg-gradient {
+            background: linear-gradient(135deg, #fff5f8 0%, #ffffff 100%);
+        }
+    </style>
+</head>
+<body class="bg-gradient">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-horizon sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.php">
+                <img src="asset/logohorizon-removebg-preview.png" alt="Logo" width="50" height="50" class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
+                <div>
+                    HORIZON UNIVERSITY
+                    <small>INDONESIA</small>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="index.php">Beranda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="ruangan.php">Ruangan</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="tambah.php">Peminjaman</a></li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="nav-link btn btn-progress" href="progress.php">Progress</a>
+                    </li>
+                    <li class="nav-item ms-lg-2"><a class="nav-link text-white" href="login.php"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="icon-kalender">
+                <i class="fa-solid fa-clock-rotate-left fa-2x"></i>
+            </div>
+            <div>
+                <h2 class="fw-bold mb-1">Progress Peminjaman</h2>
+                <p class="text-muted mb-0">Pantau status pengajuan peminjaman fasilitas Anda di sini.</p>
+            </div>
+        </div>
+
+        <?php if ($stmt->rowCount() == 0): ?>
+            <div class="alert alert-info">Belum ada pengajuan peminjaman.</div>
+        <?php else: ?>
+            <?php while ($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
+            <div class="card card-pinjam p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-kalender">
+                                <i class="fa-solid fa-calendar-day fa-2x"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1"><?= htmlspecialchars($row['nama_ruangan']) ?></h5>
+                                <h6 class="fw-bold mb-1">ID Ruangan: <?= htmlspecialchars($row['id_ruangan']) ?></h6>
+                                
+                                <p class="text-muted mb-0"><i class="fa-solid fa-clock me-1"></i>Tanggal Pinjam: <?= htmlspecialchars($row['tgl_pinjam']) ?> • <?= htmlspecialchars($row['jam_mulai']) ?>-<?= htmlspecialchars($row['jam_selesai']) ?></p>
+                                <p class="text-muted mb-0"><i class="fa-solid fa-file-pen me-1"></i>Tujuan: <?= htmlspecialchars($row['tujuan']) ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <?php if ($row['status'] == 'Pending'): ?>
+                            <span class="badge-pending"><i class="fa-solid fa-clock me-1"></i>Menunggu Persetujuan Admin</span>
+                            <p class="text-muted small mt-2 mb-0">Pengajuan Anda sedang diproses oleh admin.</p>
+                        <?php else: ?>
+                            <span class="badge-pending"><?= htmlspecialchars($row['status']) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endwhile; ?>
+        <?php endif; ?>
+
+        <div class="alert alert-light mt-4 border-0 rounded-3" style="background-color:#fff0f3;">
+            <i class="fa-solid fa-circle-info me-2" style="color:#800000;"></i>
+            <span class="small fw-semibold">Status akan diperbarui secara otomatis setelah admin memberikan persetujuan.</span>
+        </div>
+    </div>
+
+    <footer class="py-3 mt-5">
+        <div class="container text-center small text-muted">
+            © 2026 Horizon University. All rights reserved. Together for a Better Future
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

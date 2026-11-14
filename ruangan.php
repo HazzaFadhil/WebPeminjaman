@@ -2,40 +2,49 @@
 // Panggil file koneksi database
 require_once 'koneksi.php';
 
+// ✅ FUNGSI BARU: CEK RUANGAN SUDAH DIPINJAM (hanya ditambahkan, tidak ubah query asli)
+function cekRuanganDipinjam($pdo, $id_ruangan) {
+    $sqlCek = "SELECT COUNT(*) AS jumlah FROM Peminjaman
+                WHERE id_ruangan = :id_ruangan AND (status = 'Pending' OR status = 'Disetujui')";
+    $stmtCek = $pdo->prepare($sqlCek);
+    $stmtCek->bindParam(':id_ruangan', $id_ruangan);
+    $stmtCek->execute();
+    $dataCek = $stmtCek->fetch(PDO::FETCH_ASSOC);
+    return $dataCek['jumlah'] > 0;
+}
+
 // Ambil keyword pencarian dan filter lokasi jika ada
 $keyword = isset($_GET['cari']) ? trim($_GET['cari']) : '';
-$lokasi = isset($_GET['lokasi']) ? $_GET['lokasi'] : '';
+$lokasi_raw = isset($_GET['lokasi']) ? trim($_GET['lokasi'] ) : '';
+$lokasi = strtolower($lokasi_raw);
 
-// Query dasar dengan JOIN ke tabel Gedung
-$query = "SELECT r.*, g.nama_gedung, g.lokasi as nama_lokasi 
-          FROM Ruangan r 
-          JOIN Gedung g ON r.id_gedung = g.id_gedung 
+// Query dasar
+$query = "SELECT r.*, g.nama_gedung, g.lokasi as nama_lokasi, g.kelompok_gedung
+          FROM Ruangan r
+          JOIN Gedung g ON r.id_gedung = g.id_gedung
           WHERE 1=1";
-
 $params = [];
 
-// Jika ada pencarian nama ruangan atau fasilitas
+// Filter pencarian
 if ($keyword !== '') {
     $query .= " AND (r.nama_ruangan LIKE ? OR r.jenis_fasilitas LIKE ?)";
     $params[] = "%$keyword%";
     $params[] = "%$keyword%";
 }
 
-// Jika ada filter lokasi gedung
-if ($lokasi !== '') {
-    $query .= " AND r.id_gedung = ?";
-    $params[] = $lokasi;
+// ✅ FILTER LOKASI (PAKAI VARIABEL $lokasi)
+if ($lokasi === 'lama') {
+    $query .= " AND g.kelompok_gedung = 'lama'";
+} elseif ($lokasi === 'baru') {
+    $query .= " AND g.kelompok_gedung = 'baru'";
 }
 
 $query .= " ORDER BY r.id_ruangan ASC";
 
+// Eksekusi PDO
 $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $list_ruangan = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Ambil data gedung untuk dropdown filter
-$stmt_gedung = $pdo->query("SELECT * FROM Gedung");
-$list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -107,7 +116,7 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
             box-shadow: inset 0 -5px 15px rgba(0, 0, 0, 0.2);
         }
 
-        /* Card Ruangan Styling (Sesuai Gambar 3) */
+        /* Card Ruangan Styling */
         .room-card {
             border: none;
             border-radius: 12px;
@@ -156,12 +165,23 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
             display: inline-block;
         }
 
+        /* ✅ CSS BARU BADGE SUDAH DIPINJAM */
+        .badge-borrowed {
+            background-color: #e9ecef;
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
         .btn-detail {
             background-color: var(--horizon-maroon);
             color: white;
             border-radius: 20px;
             padding: 6px 18px;
-            font-size: 0.85srem;
+            font-size: 0.85rem;
             font-weight: 500;
             text-decoration: none;
             transition: all 0.2s ease;
@@ -170,6 +190,18 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
         .btn-detail:hover {
             background-color: var(--horizon-dark-maroon);
             color: white;
+        }
+
+        /* ✅ CSS BARU TOMBOL DISABLED */
+        .btn-detail-disabled {
+            background-color: #999 !important;
+            color: #fff !important;
+            border-radius: 20px;
+            padding: 6px 18px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
         /* Search & Filter Bar */
@@ -181,24 +213,21 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 35px;
         }
 
-        /* Definisi Animasi Muncul Perlahan (Fade In & Slide Up) */
+        /* Animasi Fade In Slide Up */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
                 transform: translateY(20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        /* Terapkan animasi ke setiap card ruangan */
         .room-card-animate {
             animation: fadeInUp 0.6s ease forwards;
             opacity: 0;
-            /* Sembunyikan di awal sebelum animasi berjalan */
         }
     </style>
 </head>
@@ -213,7 +242,7 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
                     class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
                 <div>
                     HORIZON UNIVERSITY
-                    <small></small>
+                    <small>INDONESIA</small>
                 </div>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -224,6 +253,9 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
                     <li class="nav-item"><a class="nav-link" href="index.php">Beranda</a></li>
                     <li class="nav-item"><a class="nav-link active" href="ruangan.php">Ruangan</a></li>
                     <li class="nav-item"><a class="nav-link" href="tambah.php">Peminjaman</a></li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="nav-link btn btn-progress" href="progress.php">Progress</a>
+                    </li>
                     <li class="nav-item ms-lg-2"><a class="nav-link text-white" href="login.php"><i
                                 class="fa-solid fa-right-to-bracket me-1"></i> Login</a></li>
                 </ul>
@@ -242,7 +274,7 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
     <!-- KONTEN UTAMA -->
     <div class="container mb-5">
 
-        <!-- SEARCH & FILTER FORM (Sesuai Gambar 3) -->
+        <!-- SEARCH & FILTER FORM (DROPDOWN 3 PILIHAN) -->
         <form method="GET" action="ruangan.php" class="filter-container">
             <div class="row g-3 align-items-center">
                 <div class="col-lg-8">
@@ -255,12 +287,9 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 <div class="col-lg-3">
                     <select name="lokasi" class="form-select">
-                        <option value="">Semua Lokasi / Gedung</option>
-                        <?php foreach ($list_gedung as $g): ?>
-                            <option value="<?= $g['id_gedung'] ?>" <?= $lokasi == $g['id_gedung'] ? 'selected' : '' ?>>
-                                <?= $g['nama_gedung'] ?> (<?= $g['lokasi'] ?>)
-                            </option>
-                        <?php endforeach; ?>
+                        <option value="" <?= empty($lokasi) ? 'selected' : '' ?>>Semua Lokasi / Gedung</option>
+                        <option value="lama" <?= $lokasi === 'lama' ? 'selected' : '' ?>>Gedung Lama</option>
+                        <option value="baru" <?= $lokasi === 'baru' ? 'selected' : '' ?>>Gedung Baru</option>
                     </select>
                 </div>
                 <div class="col-lg-1">
@@ -274,11 +303,11 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
         <div class="row g-4">
             <?php if (count($list_ruangan) > 0): ?>
                 <?php
-                $index = 0; // Inisialisasi penghitung untuk delay
+                $index = 0;
                 foreach ($list_ruangan as $row):
-                    $delay = $index * 0.1; // Setiap card berikutnya akan jeda 0.1 detik
+                    $delay = $index * 0.1;
+                    $sudahDipinjam = cekRuanganDipinjam($pdo, $row['id_ruangan']);
                     ?>
-                    <!-- Tambahkan kelas animasi dan style delay di sini -->
                     <div class="col-md-4 room-card-animate" style="animation-delay: <?= $delay; ?>s;">
                         <div class="room-card">
                             <div class="room-header-bg d-flex justify-content-between align-items-center">
@@ -299,12 +328,21 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
                                     <?= htmlspecialchars($row['jenis_fasilitas']) ?>
                                 </p>
                                 <div class="d-flex justify-content-between align-items-center mt-4 pt-2 border-top">
-                                    <span class="badge-available">
-                                        <i class="fa-solid fa-circle text-success me-1" style="font-size: 8px;"></i> Tersedia
-                                    </span>
-                                    <a href="tambah.php?id_ruangan=<?= $row['id_ruangan'] ?>" class="btn-detail">
-                                        Pinjam <i class="fa-solid fa-arrow-right ms-1"></i>
-                                    </a>
+                                    <?php if ($sudahDipinjam): ?>
+                                        <span class="badge-borrowed">
+                                            <i class="fa-solid fa-calendar-check me‑1"></i> Sudah Dipinjam
+                                        </span>
+                                        <span class="btn-detail-disabled">
+                                            Sudah Dipinjam
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="badge-available">
+                                            <i class="fa-solid fa-circle text-success me‑1" style="font-size: 8px;"></i> Tersedia
+                                        </span>
+                                        <a href="tambah.php?id_ruangan=<?= $row['id_ruangan'] ?>" class="btn-detail">
+                                            Pinjam <i class="fa-solid fa-arrow-right ms-1"></i>
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -319,7 +357,7 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
                         <i class="fa-solid fa-triangle-exclamation fa-2x mb-3 text-warning"></i>
                         <h5>Maaf, ruangan yang Anda cari tidak ditemukan.</h5>
                         <p class="mb-0 text-muted">Coba gunakan kata kunci lain atau reset filter pencarian.</p>
-                        <a href="ruangan.php" class="btn btn-sm btn-dark mt-3">Reset Pencarian</a>
+                        <a href="ruangan.php" class="btn btn-sm btn-dark mt-3">Reset Pencarian</a>
                     </div>
                 </div>
             <?php endif; ?>
@@ -327,7 +365,7 @@ $list_gedung = $stmt_gedung->fetchAll(PDO::FETCH_ASSOC);
 
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
+    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
