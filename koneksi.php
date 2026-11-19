@@ -1,16 +1,14 @@
-<!-- gunakan pdo untuk koneksi yang aman -->
-
 <?php
 $host = 'localhost';
-$dbname = 'db_peminjaman_kampus'; // Sesuaikan dengan nama database Anda
+$dbname = 'db_peminjaman_kampus'; 
 $username = 'root';
-$password = ''; // Kosongkan jika pakai XAMPP default
+$password = ''; 
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    // Set error mode ke exception agar mudah mendeteksi bug
+
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Koneksi database gagal: " . $e->getMessage());
 }
-?>
+?> 

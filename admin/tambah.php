@@ -1,66 +1,216 @@
+
 <?php
-// Panggil file koneksi database
+session_start();
 require_once '../koneksi.php';
 
 $pesan_sukses = '';
 $pesan_error = '';
 
-// Ambil parameter id_ruangan jika dikirim dari halaman ruangan.php
-$selected_ruangan = isset($_GET['id_ruangan']) ? $_GET['id_ruangan'] : '';
+// Menyimpan nilai form
+$id_pengguna = '';
+$id_ruangan = $_GET['id_ruangan'] ?? '';
+$tgl_pinjam = '';
+$jam_mulai = '';
+$jam_selesai = '';
+$tujuan = '';
 
-// Jika tombol submit dikirim
+// =====================================
+// PROSES PENGAJUAN PEMINJAMAN
+// =====================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_pengguna   = trim($_POST['id_pengguna']);
-    $id_ruangan    = trim($_POST['id_ruangan']);
-    $tgl_pinjam    = trim($_POST['tgl_pinjam']);
-    $jam_mulai     = trim($_POST['jam_mulai']);
-    $jam_selesai   = trim($_POST['jam_selesai']);
-    $tujuan        = trim($_POST['tujuan']);
-    
-    // Data otomatis sistem
-    $id_peminjaman = 'P' . rand(100, 999); // Generate ID acak sederhana, misal P789
-    $tgl_pengajuan = date('Y-m-d');        // Tanggal hari ini
-    $status        = 'Pending';            // Status awal wajib Pending
 
-    // Validasi sederhana
-    if (empty($id_pengguna) || empty($id_ruangan) || empty($tgl_pinjam) || empty($jam_mulai) || empty($jam_selesai) || empty($tujuan)) {
-        $pesan_error = "Semua kolom form wajib diisi!";
-    } else {
+    $id_pengguna = trim($_POST['id_pengguna'] ?? '');
+    $id_ruangan = trim($_POST['id_ruangan'] ?? '');
+    $tgl_pinjam = trim($_POST['tgl_pinjam'] ?? '');
+    $jam_mulai = trim($_POST['jam_mulai'] ?? '');
+    $jam_selesai = trim($_POST['jam_selesai'] ?? '');
+    $tujuan = trim($_POST['tujuan'] ?? '');
+
+    // Validasi kolom wajib
+    if (
+        empty($id_pengguna) ||
+        empty($id_ruangan) ||
+        empty($tgl_pinjam) ||
+        empty($jam_mulai) ||
+        empty($jam_selesai) ||
+        empty($tujuan)
+    ) {
+        $pesan_error = 'Semua kolom form wajib diisi!';
+    }
+
+    // Validasi format tanggal
+    elseif (
+        !DateTime::createFromFormat('Y-m-d', $tgl_pinjam) ||
+        DateTime::createFromFormat('Y-m-d', $tgl_pinjam)->format('Y-m-d') !== $tgl_pinjam
+    ) {
+        $pesan_error = 'Format tanggal peminjaman tidak valid.';
+    }
+
+    // Tidak boleh meminjam tanggal yang sudah lewat
+    elseif ($tgl_pinjam < date('Y-m-d')) {
+        $pesan_error = 'Tanggal peminjaman tidak boleh kurang dari hari ini.';
+    }
+
+    // Validasi jam
+    elseif ($jam_mulai >= $jam_selesai) {
+        $pesan_error = 'Jam selesai harus lebih besar dari jam mulai!';
+    }
+
+    else {
         try {
-            $sql = "INSERT INTO Peminjaman (id_peminjaman, tgl_pengajuan, tgl_pinjam, jam_mulai, jam_selesai, tujuan, status, id_pengguna, id_ruangan) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$id_peminjaman, $tgl_pengajuan, $tgl_pinjam, $jam_mulai, $jam_selesai, $tujuan, $status, $id_pengguna, $id_ruangan]);
-            
-            $pesan_sukses = "Pengajuan peminjaman berhasil dikirim! Status saat ini: Pending.";
+
+            // Pastikan pengguna tersedia
+            $cekPengguna = $pdo->prepare(
+                "SELECT COUNT(*) FROM Pengguna WHERE id_pengguna = ?"
+            );
+            $cekPengguna->execute([$id_pengguna]);
+
+            // Pastikan ruangan tersedia
+            $cekRuangan = $pdo->prepare(
+                "SELECT COUNT(*) FROM Ruangan WHERE id_ruangan = ?"
+            );
+            $cekRuangan->execute([$id_ruangan]);
+
+            if ($cekPengguna->fetchColumn() == 0) {
+                throw new Exception('Data pengguna tidak ditemukan.');
+            }
+
+            if ($cekRuangan->fetchColumn() == 0) {
+                throw new Exception('Ruangan tidak ditemukan.');
+            }
+
+            $sqlCek = "
+                SELECT COUNT(*)
+                FROM Peminjaman
+                WHERE id_ruangan = ?
+                AND tgl_pinjam = ?
+                AND status IN ('Pending', 'Disetujui')
+                AND jam_mulai < ?
+                AND jam_selesai > ?
+            ";
+
+            $stmtCek = $pdo->prepare($sqlCek);
+
+            $stmtCek->execute([
+                $id_ruangan,
+                $tgl_pinjam,
+                $jam_selesai,
+                $jam_mulai
+            ]);
+
+            if ($stmtCek->fetchColumn() > 0) {
+
+                $pesan_error = 'Maaf, ruangan sudah memiliki jadwal peminjaman pada waktu tersebut. Silakan pilih jam lain.';
+
+            } else {
+
+                $id_peminjaman = '';
+
+                do {
+                    $id_peminjaman = 'P' . random_int(1000, 999999);
+
+                    $cekID = $pdo->prepare(
+                        "SELECT COUNT(*) FROM Peminjaman WHERE id_peminjaman = ?"
+                    );
+
+                    $cekID->execute([$id_peminjaman]);
+
+                } while ($cekID->fetchColumn() > 0);
+
+                // Data otomatis sistem
+                $tgl_pengajuan = date('Y-m-d');
+                $status = 'Pending';
+
+                $sql = "
+                    INSERT INTO Peminjaman (
+                        id_peminjaman,
+                        tgl_pengajuan,
+                        tgl_pinjam,
+                        jam_mulai,
+                        jam_selesai,
+                        tujuan,
+                        status,
+                        id_pengguna,
+                        id_ruangan
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ";
+
+                $stmt = $pdo->prepare($sql);
+
+                $stmt->execute([
+                    $id_peminjaman,
+                    $tgl_pengajuan,
+                    $tgl_pinjam,
+                    $jam_mulai,
+                    $jam_selesai,
+                    $tujuan,
+                    $status,
+                    $id_pengguna,
+                    $id_ruangan
+                ]);
+
+                $pesan_sukses = 'Pengajuan peminjaman berhasil dikirim! Status saat ini: Pending.';
+
+                // Kosongkan form setelah berhasil
+                $id_pengguna = '';
+                $id_ruangan = '';
+                $tgl_pinjam = '';
+                $jam_mulai = '';
+                $jam_selesai = '';
+                $tujuan = '';
+            }
+
         } catch (PDOException $e) {
-            $pesan_error = "Gagal menyimpan data: " . $e->getMessage();
+
+            $pesan_error = 'Terjadi kesalahan database. Silakan coba lagi.';
+
+        } catch (Exception $e) {
+
+            $pesan_error = $e->getMessage();
         }
     }
 }
 
-// Ambil data Pengguna/Ormawa untuk dropdown
-$stmt_pengguna = $pdo->query("SELECT * FROM Pengguna ORDER BY nama_ormawa ASC");
+$stmt_pengguna = $pdo->query(
+    "SELECT * FROM Pengguna ORDER BY nama_ormawa ASC"
+);
+
 $list_pengguna = $stmt_pengguna->fetchAll(PDO::FETCH_ASSOC);
 
-// Ambil data Ruangan untuk dropdown
-$stmt_ruangan = $pdo->query("SELECT r.*, g.nama_gedung FROM Ruangan r JOIN Gedung g ON r.id_gedung = g.id_gedung ORDER BY r.nama_ruangan ASC");
+$stmt_ruangan = $pdo->query(
+    "SELECT r.*, g.nama_gedung
+     FROM Ruangan r
+     JOIN Gedung g ON r.id_gedung = g.id_gedung
+     ORDER BY r.nama_ruangan ASC"
+);
+
 $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
+
+// Fungsi keamanan output
+function e($value) {
+    return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Form Pengajuan Peminjaman — Horizon University</title>
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (Poppins) -->
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -99,13 +249,13 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
             transition: all 0.3s ease;
         }
 
-        .nav-link:hover, .nav-link.active {
+        .nav-link:hover,
+        .nav-link.active {
             background-color: #ffffff !important;
             color: var(--horizon-maroon) !important;
             font-weight: 600;
         }
 
-        /* Form Container Styling (Sesuai Gambar 1) */
         .form-card-container {
             background: #ffffff;
             border-radius: 15px;
@@ -145,19 +295,20 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
             text-align: center;
         }
 
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             border-radius: 8px;
             padding: 10px 15px;
             border: 1px solid #ced4da;
             transition: all 0.2s;
         }
 
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             border-color: var(--horizon-maroon);
             box-shadow: 0 0 0 0.2rem rgba(128, 0, 0, 0.15);
         }
 
-        /* Tombol Kirim Pengajuan */
         .btn-submit-horizon {
             background-color: var(--horizon-maroon);
             color: white;
@@ -175,158 +326,337 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(128, 0, 0, 0.4);
         }
+
+        @media (max-width: 768px) {
+            .form-header-title {
+                font-size: 1.1rem;
+                padding: 20px;
+            }
+
+            .form-body-content {
+                padding: 25px 20px;
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <!-- NAVBAR UTAMA -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-horizon sticky-top">
+
         <div class="container">
+
             <a class="navbar-brand d-flex align-items-center" href="index.php">
-                <img src="../asset/logohorizon-removebg-preview.png" alt="Logo" width="50" height="50" class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
+
+                <img
+                    src="../asset/logohorizon-removebg-preview.png"
+                    alt="Logo"
+                    width="50"
+                    height="50"
+                    class="me-2 d-inline-block align-text-top object-fit-contain"
+                    onerror="this.style.display='none'"
+                >
+
                 <div>
                     HORIZON UNIVERSITY
                     <small>KARAWANG</small>
                 </div>
+
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav"
+            >
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
+
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link" href="index.php">Beranda</a></li>
-                    <li class="nav-item"><a class="nav-link" href="ruangan.php">Ruangan</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="tambah.php">Peminjaman</a></li>
-                    <li class="nav-item ms-lg-2"><a class="nav-link text-white" href="login.php"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a></li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.php">Beranda</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="ruangan.php">Ruangan</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link active" href="tambah.php">Peminjaman</a>
+                    </li>
+
+                    <li class="nav-item ms-lg-2">
+                        <a class="nav-link text-white" href="login.php">
+                            <i class="fa-solid fa-right-to-bracket me-1"></i>
+                            Login
+                        </a>
+                    </li>
+
                 </ul>
+
             </div>
+
         </div>
+
     </nav>
 
-    <!-- KONTEN FORM PEMINJAMAN -->
+    <!-- KONTEN FORM -->
     <div class="container">
+
         <div class="row justify-content-center">
+
             <div class="col-lg-9">
-                
+
                 <div class="form-card-container">
+
                     <div class="form-header-title d-flex align-items-center">
+
                         <i class="fa-solid fa-calendar-days fs-4 me-3"></i>
-                        <span>Form Pengajuan Peminjaman Fasilitas — Horizon University</span>
+
+                        <span>
+                            Form Pengajuan Peminjaman Fasilitas — Horizon University
+                        </span>
+
                     </div>
 
                     <div class="form-body-content">
-                        
-                        <!-- Notifikasi Pesan -->
+
+                        <!-- NOTIFIKASI BERHASIL -->
                         <?php if (!empty($pesan_sukses)): ?>
+
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                <i class="fa-solid fa-circle-check me-2"></i> <?= $pesan_sukses ?>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+
+                                <i class="fa-solid fa-circle-check me-2"></i>
+
+                                <?= e($pesan_sukses); ?>
+
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="alert"
+                                    aria-label="Close"
+                                ></button>
+
                             </div>
+
                         <?php endif; ?>
 
+                        <!-- NOTIFIKASI ERROR -->
                         <?php if (!empty($pesan_error)): ?>
+
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <i class="fa-solid fa-triangle-exclamation me-2"></i> <?= $pesan_error ?>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+
+                                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+
+                                <?= e($pesan_error); ?>
+
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="alert"
+                                    aria-label="Close"
+                                ></button>
+
                             </div>
+
                         <?php endif; ?>
 
-                        <!-- FORM HTML (Sesuai Desain Gambar 1) -->
+                        <!-- FORM PENGAJUAN -->
                         <form method="POST" action="tambah.php">
-                            
-                            <!-- 1. Nama Organisasi / Kelompok -->
+
+                            <!-- NAMA ORGANISASI -->
                             <div class="row mb-4 align-items-center">
+
                                 <label class="col-md-4 form-label-custom">
-                                    <i class="fa-solid fa-users"></i> Nama Organisasi/Kelompok
+                                    <i class="fa-solid fa-users"></i>
+                                    Nama Organisasi/Kelompok
                                 </label>
+
                                 <div class="col-md-8">
+
                                     <select name="id_pengguna" class="form-select" required>
-                                        <option value="">-- Pilih Organisasi / Ormawa --</option>
+
+                                        <option value="">
+                                            -- Pilih Organisasi / Ormawa --
+                                        </option>
+
                                         <?php foreach ($list_pengguna as $p): ?>
-                                            <option value="<?= $p['id_pengguna'] ?>">
-                                                <?= htmlspecialchars($p['nama_ormawa']) ?>
+
+                                            <option
+                                                value="<?= e($p['id_pengguna']); ?>"
+                                                <?= ($id_pengguna == $p['id_pengguna']) ? 'selected' : ''; ?>
+                                            >
+                                                <?= e($p['nama_ormawa']); ?>
                                             </option>
+
                                         <?php endforeach; ?>
+
                                     </select>
+
                                 </div>
+
                             </div>
 
-                            <!-- 2. Pilih Ruangan -->
+                            <!-- PILIH RUANGAN -->
                             <div class="row mb-4 align-items-center">
+
                                 <label class="col-md-4 form-label-custom">
-                                    <i class="fa-solid fa-door-open"></i> Pilih Ruangan
+                                    <i class="fa-solid fa-door-open"></i>
+                                    Pilih Ruangan
                                 </label>
+
                                 <div class="col-md-8">
+
                                     <select name="id_ruangan" class="form-select" required>
-                                        <option value="">-- Pilih Ruangan / Fasilitas --</option>
+
+                                        <option value="">
+                                            -- Pilih Ruangan / Fasilitas --
+                                        </option>
+
                                         <?php foreach ($list_ruangan as $r): ?>
-                                            <option value="<?= $r['id_ruangan'] ?>" <?= ($selected_ruangan == $r['id_ruangan']) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($r['nama_ruangan']) ?> (<?= htmlspecialchars($r['nama_gedung']) ?> - Kapasitas: <?= $r['kapasitas'] ?>)
+
+                                            <option
+                                                value="<?= e($r['id_ruangan']); ?>"
+                                                <?= ($id_ruangan == $r['id_ruangan']) ? 'selected' : ''; ?>
+                                            >
+                                                <?= e($r['nama_ruangan']); ?>
+                                                (<?= e($r['nama_gedung']); ?> -
+                                                Kapasitas: <?= e($r['kapasitas']); ?>)
                                             </option>
+
                                         <?php endforeach; ?>
+
                                     </select>
+
                                 </div>
+
                             </div>
 
-                            <!-- 3. Tanggal Peminjaman -->
+                            <!-- TANGGAL PEMINJAMAN -->
                             <div class="row mb-4 align-items-center">
+
                                 <label class="col-md-4 form-label-custom">
-                                    <i class="fa-solid fa-calendar-alt"></i> Tanggal Peminjaman
+                                    <i class="fa-solid fa-calendar-alt"></i>
+                                    Tanggal Peminjaman
                                 </label>
+
                                 <div class="col-md-8">
-                                    <input type="date" name="tgl_pinjam" class="form-control" required>
+
+                                    <input
+                                        type="date"
+                                        name="tgl_pinjam"
+                                        class="form-control"
+                                        min="<?= date('Y-m-d'); ?>"
+                                        value="<?= e($tgl_pinjam); ?>"
+                                        required
+                                    >
+
                                 </div>
+
                             </div>
 
-                            <!-- 4. Jam Mulai -->
+                            <!-- JAM MULAI -->
                             <div class="row mb-4 align-items-center">
+
                                 <label class="col-md-4 form-label-custom">
-                                    <i class="fa-solid fa-clock"></i> Jam Mulai
+                                    <i class="fa-solid fa-clock"></i>
+                                    Jam Mulai
                                 </label>
+
                                 <div class="col-md-8">
-                                    <input type="time" name="jam_mulai" class="form-control" required>
+
+                                    <input
+                                        type="time"
+                                        name="jam_mulai"
+                                        class="form-control"
+                                        value="<?= e($jam_mulai); ?>"
+                                        required
+                                    >
+
                                 </div>
+
                             </div>
 
-                            <!-- 5. Jam Selesai -->
+                            <!-- JAM SELESAI -->
                             <div class="row mb-4 align-items-center">
+
                                 <label class="col-md-4 form-label-custom">
-                                    <i class="fa-solid fa-clock-rotate-left"></i> Jam Selesai
+                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                    Jam Selesai
                                 </label>
+
                                 <div class="col-md-8">
-                                    <input type="time" name="jam_selesai" class="form-control" required>
+
+                                    <input
+                                        type="time"
+                                        name="jam_selesai"
+                                        class="form-control"
+                                        value="<?= e($jam_selesai); ?>"
+                                        required
+                                    >
+
                                 </div>
+
                             </div>
 
-                            <!-- 6. Tujuan Penggunaan -->
+                            <!-- TUJUAN PENGGUNAAN -->
                             <div class="row mb-4 align-items-start">
+
                                 <label class="col-md-4 form-label-custom pt-2">
-                                    <i class="fa-solid fa-file-lines"></i> Tujuan Penggunaan
+                                    <i class="fa-solid fa-file-lines"></i>
+                                    Tujuan Penggunaan
                                 </label>
+
                                 <div class="col-md-8">
-                                    <textarea name="tujuan" rows="4" class="form-control" placeholder="Jelaskan tujuan penggunaan fasilitas..." required></textarea>
+
+                                    <textarea
+                                        name="tujuan"
+                                        rows="4"
+                                        class="form-control"
+                                        placeholder="Jelaskan tujuan penggunaan fasilitas..."
+                                        required
+                                    ><?= e($tujuan); ?></textarea>
+
                                 </div>
+
                             </div>
 
-                            <!-- Tombol Aksi -->
+                            <!-- TOMBOL KIRIM -->
                             <div class="row">
+
                                 <div class="col-md-8 offset-md-4">
-                                    <button type="submit" class="btn-submit-horizon">
-                                        <i class="fa-solid fa-paper-plane me-2"></i> Kirim Pengajuan
+
+                                    <button
+                                        type="submit"
+                                        class="btn-submit-horizon"
+                                    >
+                                        <i class="fa-solid fa-paper-plane me-2"></i>
+                                        Kirim Pengajuan
                                     </button>
+
                                 </div>
+
                             </div>
 
                         </form>
 
                     </div>
+
                 </div>
 
             </div>
+
         </div>
+
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
+    <!-- BOOTSTRAP JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

@@ -1,54 +1,120 @@
+
 <?php
 session_start();
-// Panggil file koneksi database
 require_once 'koneksi.php';
 
 $pesan_sukses = '';
 $pesan_error = '';
 
-// Ambil parameter id_ruangan jika dikirim dari halaman ruangan.php
-$selected_ruangan = isset($_GET['id_ruangan']) ? $_GET['id_ruangan'] : '';
+$selected_ruangan = isset($_GET['id_ruangan'])
+    ? $_GET['id_ruangan'] : '';
 
-// Jika tombol submit dikirim
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id_pengguna   = trim($_POST['id_pengguna']);
-    $id_ruangan    = trim($_POST['id_ruangan']);
-    $tgl_pinjam    = trim($_POST['tgl_pinjam']);
-    $jam_mulai     = trim($_POST['jam_mulai']);
-    $jam_selesai   = trim($_POST['jam_selesai']);
-    $tujuan        = trim($_POST['tujuan']);
-    
-    // Data otomatis sistem
-    $id_peminjaman = 'P' . rand(100, 999); // Generate ID acak sederhana, misal P789
-    $tgl_pengajuan = date('Y-m-d');        // Tanggal hari ini
-    $status        = 'Pending';            // Status awal wajib Pending
 
-    // Validasi sederhana
-    if (empty($id_pengguna) || empty($id_ruangan) || empty($tgl_pinjam) || empty($jam_mulai) || empty($jam_selesai) || empty($tujuan)) {
+    $id_pengguna = trim($_POST['id_pengguna']);
+    $id_ruangan = trim($_POST['id_ruangan']);
+    $tgl_pinjam = trim($_POST['tgl_pinjam']);
+    $jam_mulai = trim($_POST['jam_mulai']);
+    $jam_selesai = trim($_POST['jam_selesai']);
+    $tujuan = trim($_POST['tujuan']);
+
+    $id_peminjaman = 'P' . rand(100, 999);
+    $tgl_pengajuan = date('Y-m-d');
+    $status = 'Pending';
+
+    if (
+        empty($id_pengguna) ||
+        empty($id_ruangan) ||
+        empty($tgl_pinjam) ||
+        empty($jam_mulai) ||
+        empty($jam_selesai) ||
+        empty($tujuan)
+    ) {
         $pesan_error = "Semua kolom form wajib diisi!";
+
+    } elseif ($jam_mulai >= $jam_selesai) {
+        $pesan_error = "Jam selesai harus lebih besar dari jam mulai!";
+
     } else {
+
         try {
-            $sql = "INSERT INTO Peminjaman (id_peminjaman, tgl_pengajuan, tgl_pinjam, jam_mulai, jam_selesai, tujuan, status, id_pengguna, id_ruangan) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$id_peminjaman, $tgl_pengajuan, $tgl_pinjam, $jam_mulai, $jam_selesai, $tujuan, $status, $id_pengguna, $id_ruangan]);
-            
-            // BARU: Flash message + Redirect ke progress.php
-            $_SESSION['flash_sukses'] = "Pengajuan peminjaman berhasil dikirim! Status saat ini: Pending.";
-            header("Location: progress.php");
-            exit;
+
+            // CEK JADWAL YANG BENTROK
+            $sqlCek = "SELECT COUNT(*)
+                       FROM Peminjaman
+                       WHERE id_ruangan = ?
+                       AND tgl_pinjam = ?
+                       AND status IN ('Pending', 'Disetujui')
+                       AND jam_mulai < ?
+                       AND jam_selesai > ?";
+
+            $stmtCek = $pdo->prepare($sqlCek);
+
+            $stmtCek->execute([
+                $id_ruangan,
+                $tgl_pinjam,
+                $jam_selesai,
+                $jam_mulai
+            ]);
+
+            $jumlahBentrok = $stmtCek->fetchColumn();
+
+            if ($jumlahBentrok > 0) {
+
+                $pesan_error = "Maaf, ruangan sudah memiliki pengajuan peminjaman pada jadwal tersebut. Silakan pilih jam yang berbeda.";
+
+            } else {
+
+                // SIMPAN PENGAJUAN
+                $sql = "INSERT INTO Peminjaman
+                        (id_peminjaman, tgl_pengajuan, tgl_pinjam,
+                         jam_mulai, jam_selesai, tujuan, status,
+                         id_pengguna, id_ruangan)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+                $stmt = $pdo->prepare($sql);
+
+                $stmt->execute([
+                    $id_peminjaman,
+                    $tgl_pengajuan,
+                    $tgl_pinjam,
+                    $jam_mulai,
+                    $jam_selesai,
+                    $tujuan,
+                    $status,
+                    $id_pengguna,
+                    $id_ruangan
+                ]);
+
+                $_SESSION['flash_sukses'] =
+                    "Pengajuan peminjaman berhasil dikirim! Status saat ini: Pending.";
+
+                header("Location: progress.php");
+                exit;
+            }
+
         } catch (PDOException $e) {
             $pesan_error = "Gagal menyimpan data: " . $e->getMessage();
         }
     }
 }
 
-// Ambil data Pengguna/Ormawa untuk dropdown
-$stmt_pengguna = $pdo->query("SELECT * FROM Pengguna ORDER BY nama_ormawa ASC");
+// AMBIL DATA PENGGUNA
+$stmt_pengguna = $pdo->query(
+    "SELECT * FROM Pengguna ORDER BY nama_ormawa ASC"
+);
+
 $list_pengguna = $stmt_pengguna->fetchAll(PDO::FETCH_ASSOC);
 
-// Ambil data Ruangan untuk dropdown
-$stmt_ruangan = $pdo->query("SELECT r.*, g.nama_gedung FROM Ruangan r JOIN Gedung g ON r.id_gedung = g.id_gedung ORDER BY r.nama_ruangan ASC");
+// AMBIL SEMUA RUANGAN
+// Jangan membatasi hanya ruangan dengan ketersediaan Tersedia
+$stmt_ruangan = $pdo->query(
+    "SELECT r.*, g.nama_gedung
+     FROM ruangan r
+     JOIN Gedung g ON r.id_gedung = g.id_gedung
+     ORDER BY r.nama_ruangan ASC"
+);
+
 $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -58,11 +124,8 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form Pengajuan Peminjaman — Horizon University</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (Poppins) -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -110,7 +173,6 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
             font-weight: 600;
         }
 
-        /* Form Container Styling (Sesuai Gambar 1) */
         .form-card-container {
             background: #ffffff;
             border-radius: 15px;
@@ -162,7 +224,6 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
             box-shadow: 0 0 0 0.2rem rgba(128, 0, 0, 0.15);
         }
 
-        /* Tombol Kirim Pengajuan */
         .btn-submit-horizon {
             background-color: var(--horizon-maroon);
             color: white;
@@ -184,14 +245,13 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
         .form-select {
             white-space: nowrap;
             overflow: hidden;
-  text-overflow: ellipsis;
+            text-overflow: ellipsis;
             padding-right: 45px !important;
-}
+        }
     </style>
 </head>
 <body>
 
-    <!-- NAVBAR UTAMA -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-horizon sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="index.php">
@@ -218,11 +278,10 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </nav>
 
-    <!-- KONTEN FORM PEMINJAMAN -->
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-9">
-                
+            
                 <div class="form-card-container">
                     <div class="form-header-title d-flex align-items-center">
                         <i class="fa-solid fa-calendar-days fs-4 me-3"></i>
@@ -230,26 +289,23 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                     </div>
 
                     <div class="form-body-content">
-                        
-                        <!-- Notifikasi Pesan -->
+                    
                         <?php if (!empty($pesan_sukses)): ?>
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
                                 <i class="fa-solid fa-circle-check me-2"></i> <?= $pesan_sukses ?>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
-                        <?php endif; ?>
+                        <?php endif ?>
 
                         <?php if (!empty($pesan_error)): ?>
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                 <i class="fa-solid fa-triangle-exclamation me-2"></i> <?= $pesan_error ?>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
-                        <?php endif; ?>
+                        <?php endif ?>
 
-                        <!-- FORM HTML (Sesuai Desain Gambar 1) -->
                         <form method="POST" action="tambah.php">
-                            
-                            <!-- 1. Nama Organisasi / Kelompok -->
+                        
                             <div class="row mb-4 align-items-center">
                                 <label class="col-md-4 form-label-custom">
                                     <i class="fa-solid fa-users"></i> Nama Organisasi/Kelompok
@@ -261,12 +317,11 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                                             <option value="<?= $p['id_pengguna'] ?>">
                                                 <?= htmlspecialchars($p['nama_ormawa']) ?>
                                             </option>
-                                        <?php endforeach; ?>
+                                        <?php endforeach ?>
                                     </select>
                                 </div>
                             </div>
 
-                            <!-- 2. Pilih Ruangan -->
                             <div class="row mb-4 align-items-center">
                                 <label class="col-md-4 form-label-custom">
                                     <i class="fa-solid fa-door-open"></i> Pilih Ruangan
@@ -278,12 +333,11 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                                             <option value="<?= $r['id_ruangan'] ?>" <?= ($selected_ruangan == $r['id_ruangan']) ? 'selected' : '' ?>>
                                                 <?= htmlspecialchars($r['nama_ruangan']) ?> (<?= htmlspecialchars($r['nama_gedung']) ?> - Kapasitas: <?= $r['kapasitas'] ?>)
                                             </option>
-                                        <?php endforeach; ?>
+                                        <?php endforeach ?>
                                     </select>
                                 </div>
                             </div>
 
-                            <!-- 3. Tanggal Peminjaman -->
                             <div class="row mb-4 align-items-center">
                                 <label class="col-md-4 form-label-custom">
                                     <i class="fa-solid fa-calendar-alt"></i> Tanggal Peminjaman
@@ -293,7 +347,6 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                             </div>
 
-                            <!-- 4. Jam Mulai -->
                             <div class="row mb-4 align-items-center">
                                 <label class="col-md-4 form-label-custom">
                                     <i class="fa-solid fa-clock"></i> Jam Mulai
@@ -303,7 +356,6 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                             </div>
 
-                            <!-- 5. Jam Selesai -->
                             <div class="row mb-4 align-items-center">
                                 <label class="col-md-4 form-label-custom">
                                     <i class="fa-solid fa-clock-rotate-left"></i> Jam Selesai
@@ -313,7 +365,6 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                             </div>
 
-                            <!-- 6. Tujuan Penggunaan -->
                             <div class="row mb-4 align-items-start">
                                 <label class="col-md-4 form-label-custom pt-2">
                                     <i class="fa-solid fa-file-lines"></i> Tujuan Penggunaan
@@ -323,7 +374,6 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                             </div>
 
-                            <!-- Tombol Aksi -->
                             <div class="row">
                                 <div class="col-md-8 offset-md-4">
                                     <button type="submit" class="btn-submit-horizon">
@@ -333,7 +383,6 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                             </div>
 
                         </form>
-
                     </div>
                 </div>
 
@@ -341,5 +390,6 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
