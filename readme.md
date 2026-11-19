@@ -11,9 +11,8 @@ Gladi Bersih Demo: Coba jalankan aplikasi dari awal (impor database .sql baru) u
 
 ============================================================
 
-1.
-Pada index.php
-buat halaman index.php yang menyambut pengguna dengan tampilan selamat datang dan menu navigasi atas (Navbar).
+1.  Pada index.php
+    buat halaman index.php yang menyambut pengguna dengan tampilan selamat datang dan menu navigasi atas (Navbar).
 
 Komponen Navbar (Atas):
 
@@ -23,9 +22,8 @@ Menu link: Beranda (index.php), Ruangan (ruangan.php), Peminjaman (peminjaman.ph
 
 Hero Section: Judul besar "Selamat Datang di Sistem Peminjaman Fasilitas Horizon University" dengan latar belakang foto gedung kampus yang elegan.
 
-2. 
-Halaman Daftar Ruangan & Fasilitas (Sesuai Gambar 3)
-Buat file baru bernama ruangan.php. Halaman ini bertugas menampilkan kartu-kartu (cards) ruangan berdasarkan data dari database (Gedung dan Ruangan).
+2.  Halaman Daftar Ruangan & Fasilitas (Sesuai Gambar 3)
+    Buat file baru bernama ruangan.php. Halaman ini bertugas menampilkan kartu-kartu (cards) ruangan berdasarkan data dari database (Gedung dan Ruangan).
 
 Fitur di Halaman Ini:
 
@@ -35,9 +33,8 @@ Filter Lokasi (Dropdown): Memilih berdasarkan Gedung (Gedung A atau Gedung B).
 
 Card Grid: Menampilkan nama ruangan, gedung, kapasitas, dan fasilitas dengan styling kotak rapi bernuansa warna merah marun khas kampus.
 
-3. 
-Halaman Form Pengajuan Peminjaman (Sesuai Gambar 1)
-Inilah inti dari fungsionalitas CRUD (Create), yaitu file tambah.php (atau form-peminjaman.php) yang menduplikasi persis desain form pada Gambar 1.
+3.  Halaman Form Pengajuan Peminjaman (Sesuai Gambar 1)
+    Inilah inti dari fungsionalitas CRUD (Create), yaitu file tambah.php (atau form-peminjaman.php) yang menduplikasi persis desain form pada Gambar 1.
 
 Elemen Form yang Harus Ada di Kode HTML/PHP:
 
@@ -63,4 +60,9 @@ dan dikhawatirkan akan error pada website.
 
 ketika nanti nambahin RBAC didalam website ini pastiin table didatabase nya udah memiliki kolom role bertipe varchar(20) agar bisa membedakan hak akses admin dan mahasiswa.
 
-
+===============================================
+fadhil
+1. Dashboard - login - setelah login 'login' sudah menjadi nama user
+2. Lalu userflow Peminjaman diperbaiki, flowchart juga diperbaiki.
+3. lalu setelah pengubahan pada userflow dan flowchart diubah juga di laporan dan ppt
+4. Latar belakang tambahkan data
