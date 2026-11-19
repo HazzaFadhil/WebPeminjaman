@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -97,9 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi'])) {
                     $pesan = 'Pengajuan peminjaman berhasil disetujui!';
                 }
 
-            }
-
-            elseif ($aksi === 'tolak') {
+            } elseif ($aksi === 'tolak') {
 
                 if ($pinjam['status'] !== 'Pending') {
                     throw new Exception(
@@ -117,9 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['aksi'])) {
 
                 $pesan = 'Pengajuan peminjaman berhasil ditolak.';
 
-            }
-
-            elseif ($aksi === 'selesai') {
+            } elseif ($aksi === 'selesai') {
 
                 if ($pinjam['status'] !== 'Disetujui') {
                     throw new Exception(
@@ -219,8 +214,9 @@ if ($cari !== '') {
 $data_peminjaman = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fungsi untuk mengamankan output HTML
-function e($value) {
-    return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+function e($value)
+{
+    return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
 }
 ?>
 
@@ -276,10 +272,6 @@ function e($value) {
             background: #007bff;
         }
 
-        .btn-hapus {
-            background: #dc3545;
-        }
-
         .btn-tambah {
             background: #800000;
             color: white;
@@ -301,10 +293,11 @@ function e($value) {
             border-collapse: collapse;
             background: white;
             margin-top: 15px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #ddd;
@@ -407,9 +400,9 @@ function e($value) {
         ← Kembali ke Beranda
     </a>
 
-    <a href="../tambah.php" class="btn-tambah">
+    <!-- <a href="../tambah.php" class="btn-tambah">
         + Tambah Peminjaman Baru
-    </a>
+    </a> -->
 
     <br><br>
 
@@ -422,12 +415,7 @@ function e($value) {
     <!-- Form Pencarian -->
     <form method="GET" action="index.php" class="form-cari">
 
-        <input
-            type="text"
-            name="cari"
-            placeholder="Cari tujuan, ormawa, atau ruangan..."
-            value="<?= e($cari); ?>"
-        >
+        <input type="text" name="cari" placeholder="Cari tujuan, ormawa, atau ruangan..." value="<?= e($cari); ?>">
 
         <button type="submit">Cari</button>
 
@@ -502,40 +490,30 @@ function e($value) {
                                 <?php if ($row['status'] === 'Pending'): ?>
 
                                     <!-- Tombol Setujui -->
-                                    <form method="POST" class="aksi-form"
-                                        onsubmit="return confirm('Setujui peminjaman ini?');">
+                                    <form method="POST" class="aksi-form" onsubmit="return confirm('Setujui peminjaman ini?');">
 
-                                        <input type="hidden" name="csrf_token"
-                                            value="<?= e($csrf_token); ?>">
+                                        <input type="hidden" name="csrf_token" value="<?= e($csrf_token); ?>">
 
-                                        <input type="hidden" name="id"
-                                            value="<?= e($row['id_peminjaman']); ?>">
+                                        <input type="hidden" name="id" value="<?= e($row['id_peminjaman']); ?>">
 
-                                        <input type="hidden" name="aksi"
-                                            value="setujui">
+                                        <input type="hidden" name="aksi" value="setujui">
 
-                                        <button type="submit"
-                                            class="btn btn-setujui">
+                                        <button type="submit" class="btn btn-setujui">
                                             Setujui
                                         </button>
 
                                     </form>
 
                                     <!-- Tombol Tolak -->
-                                    <form method="POST" class="aksi-form"
-                                        onsubmit="return confirm('Tolak peminjaman ini?');">
+                                    <form method="POST" class="aksi-form" onsubmit="return confirm('Tolak peminjaman ini?');">
 
-                                        <input type="hidden" name="csrf_token"
-                                            value="<?= e($csrf_token); ?>">
+                                        <input type="hidden" name="csrf_token" value="<?= e($csrf_token); ?>">
 
-                                        <input type="hidden" name="id"
-                                            value="<?= e($row['id_peminjaman']); ?>">
+                                        <input type="hidden" name="id" value="<?= e($row['id_peminjaman']); ?>">
 
-                                        <input type="hidden" name="aksi"
-                                            value="tolak">
+                                        <input type="hidden" name="aksi" value="tolak">
 
-                                        <button type="submit"
-                                            class="btn btn-tolak">
+                                        <button type="submit" class="btn btn-tolak">
                                             Tolak
                                         </button>
 
@@ -547,17 +525,13 @@ function e($value) {
                                     <form method="POST" class="aksi-form"
                                         onsubmit="return confirm('Tandai peminjaman ini selesai?');">
 
-                                        <input type="hidden" name="csrf_token"
-                                            value="<?= e($csrf_token); ?>">
+                                        <input type="hidden" name="csrf_token" value="<?= e($csrf_token); ?>">
 
-                                        <input type="hidden" name="id"
-                                            value="<?= e($row['id_peminjaman']); ?>">
+                                        <input type="hidden" name="id" value="<?= e($row['id_peminjaman']); ?>">
 
-                                        <input type="hidden" name="aksi"
-                                            value="selesai">
+                                        <input type="hidden" name="aksi" value="selesai">
 
-                                        <button type="submit"
-                                            class="btn btn-selesai">
+                                        <button type="submit" class="btn btn-selesai">
                                             Selesai
                                         </button>
 
@@ -574,26 +548,11 @@ function e($value) {
 
                                 <?php endif; ?>
 
-                                <a
-                                    href="edit.php?id=<?= urlencode($row['id_peminjaman']); ?>"
-                                    class="btn btn-edit">
+                                <!-- <a href="edit.php?id=<?= urlencode($row['id_peminjaman']); ?>" class="btn btn-edit">
                                     Edit
-                                </a>
+                                </a> -->
 
-                              <form method="POST" action="hapus.php" class="aksi-form"
-    onsubmit="return confirm('Yakin ingin menghapus data ini?');">
-
-    <input type="hidden" name="csrf_token"
-        value="<?= e($csrf_token); ?>">
-
-    <input type="hidden" name="id"
-        value="<?= e($row['id_peminjaman']); ?>">
-
-    <button type="submit" class="btn btn-hapus">
-        Hapus
-    </button>
-
-</form>
+                                
 
                             </td>
 
@@ -618,4 +577,5 @@ function e($value) {
     </div>
 
 </body>
+
 </html>
