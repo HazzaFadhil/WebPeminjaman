@@ -131,7 +131,6 @@ $stmt_ruangan = $pdo->query(
 
 $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 
@@ -337,8 +336,40 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                     <li class="nav-item ms-lg-2">
                         <a class="nav-link btn btn-progress" href="progress.php">Progress</a>
                     </li>
-                    <li class="nav-item ms-lg-2"><a class="nav-link text-white" href="login.php"><i
-                                class="fa-solid fa-right-to-bracket me-1"></i> Login</a></li>
+                    <?php if ($is_login): ?>
+                        <li class="nav-item dropdown ms-lg-2">
+                            <a class="nav-link dropdown-toggle profile-toggle d-flex align-items-center"
+                               href="#"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               data-bs-display="static"
+                               aria-expanded="false">
+                                <?php if (!empty($foto_profil)): ?>
+                                    <img src="<?= htmlspecialchars($foto_profil) ?>"
+                                         alt="Foto Profil"
+                                         class="profile-navbar">
+                                <?php else: ?>
+                                    <i class="fa-solid fa-circle-user profile-icon"></i>
+                                <?php endif; ?>
+                            </a>
+
+                            <ul class="dropdown-menu dropdown-menu-end profile-dropdown">
+                                <li>
+                                    <a class="dropdown-item text-danger" href="logout.php">
+                                        <i class="fa-solid fa-right-from-bracket me-2"></i>
+                                        Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item ms-lg-2">
+                            <a class="nav-link text-white" href="login.php">
+                                <i class="fa-solid fa-right-to-bracket me-1"></i>
+                                Login
+                            </a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -450,273 +481,12 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                         </form>
                     </div>
                 </div>
-<nav class="navbar navbar-expand-lg navbar-dark navbar-horizon sticky-top">
-    <div class="container">
 
-        <a class="navbar-brand d-flex align-items-center" href="index.php">
-            <img src="asset/logohorizon-removebg-preview.png"
-                 alt="Logo"
-                 width="50"
-                 height="50"
-                 class="me-2 d-inline-block align-text-top object-fit-contain"
-                 onerror="this.style.display='none'">
-
-            <div>
-                HORIZON UNIVERSITY
-                <small>INDONESIA</small>
             </div>
-        </a>
-
-        <button class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-center">
-
-                <li class="nav-item">
-                    <a class="nav-link" href="index.php">Beranda</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="ruangan.php">Ruangan</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link active" href="tambah.php">Peminjaman</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="progress.php">Progress</a>
-                </li>
-
-                <?php if ($is_login): ?>
-
-                    <li class="nav-item dropdown ms-lg-2">
-                        <a class="nav-link dropdown-toggle profile-toggle d-flex align-items-center"
-                           href="#"
-                           role="button"
-                           data-bs-toggle="dropdown"
-                           aria-expanded="false">
-
-                            <?php if (!empty($foto_profil)): ?>
-
-                                <img src="<?= htmlspecialchars($foto_profil) ?>"
-                                     alt="Foto Profil"
-                                     class="profile-navbar">
-
-                            <?php else: ?>
-
-                                <i class="fa-solid fa-circle-user profile-icon"></i>
-
-                            <?php endif; ?>
-
-                        </a>
-
-                        <ul class="dropdown-menu dropdown-menu-end profile-dropdown">
-                            <li>
-                                <a class="dropdown-item text-danger" href="logout.php">
-                                    <i class="fa-solid fa-right-from-bracket me-2"></i>
-                                    Logout
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                <?php else: ?>
-
-                    <li class="nav-item ms-lg-2">
-                        <a class="nav-link text-white" href="login.php">
-                            <i class="fa-solid fa-right-to-bracket me-1"></i>
-                            Login
-                        </a>
-                    </li>
-
-                <?php endif; ?>
-
-            </ul>
         </div>
     </div>
-</nav>
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-lg-9">
-
-            <div class="form-card-container">
-
-                <div class="form-header-title d-flex align-items-center">
-                    <i class="fa-solid fa-calendar-days fs-4 me-3"></i>
-                    <span>Form Pengajuan Peminjaman Fasilitas — Horizon University</span>
-                </div>
-
-                <div class="form-body-content">
-
-                    <?php if (!empty($pesan_sukses)): ?>
-
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fa-solid fa-circle-check me-2"></i>
-                            <?= $pesan_sukses ?>
-
-                            <button type="button"
-                                    class="btn-close"
-                                    data-bs-dismiss="alert"
-                                    aria-label="Close">
-                            </button>
-                        </div>
-
-                    <?php endif ?>
-
-                    <?php if (!empty($pesan_error)): ?>
-
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fa-solid fa-triangle-exclamation me-2"></i>
-                            <?= $pesan_error ?>
-
-                            <button type="button"
-                                    class="btn-close"
-                                    data-bs-dismiss="alert"
-                                    aria-label="Close">
-                            </button>
-                        </div>
-
-                    <?php endif ?>
-
-                    <form method="POST" action="tambah.php">
-
-                        <div class="row mb-4 align-items-center">
-                            <label class="col-md-4 form-label-custom">
-                                <i class="fa-solid fa-users"></i>
-                                Nama Organisasi/Kelompok
-                            </label>
-
-                            <div class="col-md-8">
-                                <select name="id_pengguna" class="form-select" required>
-                                    <option value="">
-                                        -- Pilih Organisasi / Ormawa --
-                                    </option>
-
-                                    <?php foreach ($list_pengguna as $p): ?>
-
-                                        <option value="<?= $p['id_pengguna'] ?>">
-                                            <?= htmlspecialchars($p['nama_ormawa']) ?>
-                                        </option>
-
-                                    <?php endforeach ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4 align-items-center">
-                            <label class="col-md-4 form-label-custom">
-                                <i class="fa-solid fa-door-open"></i>
-                                Pilih Ruangan
-                            </label>
-
-                            <div class="col-md-8">
-                                <select name="id_ruangan" class="form-select" required>
-                                    <option value="">
-                                        -- Pilih Ruangan / Fasilitas --
-                                    </option>
-
-                                    <?php foreach ($list_ruangan as $r): ?>
-
-                                        <option value="<?= $r['id_ruangan'] ?>"
-                                            <?= ($selected_ruangan == $r['id_ruangan']) ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($r['nama_ruangan']) ?>
-                                            (<?= htmlspecialchars($r['nama_gedung']) ?> -
-                                            Kapasitas: <?= $r['kapasitas'] ?>)
-                                        </option>
-
-                                    <?php endforeach ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4 align-items-center">
-                            <label class="col-md-4 form-label-custom">
-                                <i class="fa-solid fa-calendar-alt"></i>
-                                Tanggal Peminjaman
-                            </label>
-
-                            <div class="col-md-8">
-                                <input type="date"
-                                       name="tgl_pinjam"
-                                       class="form-control"
-                                       required>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4 align-items-center">
-                            <label class="col-md-4 form-label-custom">
-                                <i class="fa-solid fa-clock"></i>
-                                Jam Mulai
-                            </label>
-
-                            <div class="col-md-8">
-                                <input type="time"
-                                       name="jam_mulai"
-                                       class="form-control"
-                                       required>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4 align-items-center">
-                            <label class="col-md-4 form-label-custom">
-                                <i class="fa-solid fa-clock-rotate-left"></i>
-                                Jam Selesai
-                            </label>
-
-                            <div class="col-md-8">
-                                <input type="time"
-                                       name="jam_selesai"
-                                       class="form-control"
-                                       required>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4 align-items-start">
-                            <label class="col-md-4 form-label-custom pt-2">
-                                <i class="fa-solid fa-file-lines"></i>
-                                Tujuan Penggunaan
-                            </label>
-
-                            <div class="col-md-8">
-                                <textarea name="tujuan"
-                                          rows="4"
-                                          class="form-control"
-                                          placeholder="Jelaskan tujuan penggunaan fasilitas..."
-                                          required></textarea>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-8 offset-md-4">
-
-                                <button type="submit"
-                                        class="btn-submit-horizon">
-
-                                    <i class="fa-solid fa-paper-plane me-2"></i>
-                                    Kirim Pengajuan
-
-                                </button>
-
-                            </div>
-                        </div>
-
-                    </form>
-
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

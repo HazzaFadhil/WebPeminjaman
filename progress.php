@@ -12,18 +12,18 @@ $idPengguna = $_SESSION['user_id'];
 
 try {
     // Hanya mengambil data peminjaman milik pengguna yang sedang login
-$is_login = isset($_SESSION['user_id']);
-$foto_profil = null;
+    $is_login = isset($_SESSION['user_id']);
+    $foto_profil = null;
 
-if ($is_login) {
-    $stmtUser = $pdo->prepare("SELECT foto_profil FROM pengguna WHERE id_pengguna = ?");
-    $stmtUser->execute([$_SESSION['user_id']]);
-    $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
+    if ($is_login) {
+        $stmtUser = $pdo->prepare("SELECT foto_profil FROM pengguna WHERE id_pengguna = ?");
+        $stmtUser->execute([$_SESSION['user_id']]);
+        $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
-    if ($user) {
-        $foto_profil = $user['foto_profil'];
+        if ($user) {
+            $foto_profil = $user['foto_profil'];
+        }
     }
-}
 
     $sql = "SELECT p.*, r.nama_ruangan
             FROM Peminjaman p
@@ -43,6 +43,7 @@ if ($is_login) {
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,7 +51,8 @@ if ($is_login) {
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <style>
         * {
@@ -66,7 +68,7 @@ if ($is_login) {
         .navbar-horizon {
             background-color: var(--maroon);
             padding: 12px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
         }
 
         .navbar-brand {
@@ -83,7 +85,7 @@ if ($is_login) {
         }
 
         .nav-link {
-            color: rgba(255,255,255,0.9) !important;
+            color: rgba(255, 255, 255, 0.9) !important;
             font-weight: 500;
             margin: 0 5px;
             padding: 8px 18px !important;
@@ -93,7 +95,7 @@ if ($is_login) {
 
         .nav-link:hover {
             color: #fff !important;
-            background-color: rgba(255,255,255,0.15);
+            background-color: rgba(255, 255, 255, 0.15);
         }
 
         .nav-link.active {
@@ -163,7 +165,7 @@ if ($is_login) {
             padding: 8px;
             border: none !important;
             border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
         .profile-dropdown .dropdown-item {
@@ -236,259 +238,246 @@ if ($is_login) {
 
 <body class="bg-gradient">
 
-<nav class="navbar navbar-expand-lg navbar-dark navbar-horizon sticky-top">
-    <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-horizon sticky-top">
+        <div class="container">
 
-        <a class="navbar-brand d-flex align-items-center" href="index.php">
-            <img src="asset/logohorizon-removebg-preview.png"
-                 alt="Logo"
-                 width="50"
-                 height="50"
-                 class="me-2 d-inline-block align-text-top object-fit-contain"
-                 onerror="this.style.display='none'">
+            <a class="navbar-brand d-flex align-items-center" href="index.php">
+                <img src="asset/logohorizon-removebg-preview.png" alt="Logo" width="50" height="50"
+                    class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
 
-            <div>
-                HORIZON UNIVERSITY
-                <small>INDONESIA</small>
-            </div>
-        </a>
+                <div>
+                    HORIZON UNIVERSITY
+                    <small>INDONESIA</small>
+                </div>
+            </a>
 
-        <button class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-center">
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
 
-                <li class="nav-item">
-                    <a class="nav-link" href="index.php">Beranda</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.php">Beranda</a>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="ruangan.php">Ruangan</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="ruangan.php">Ruangan</a>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="tambah.php">Peminjaman</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="tambah.php">Peminjaman</a>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link active" href="progress.php">Progress</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="progress.php">Progress</a>
+                    </li>
 
-                <?php if ($is_login): ?>
+                    <?php if ($is_login): ?>
 
-                    <li class="nav-item dropdown ms-lg-2">
+                        <li class="nav-item dropdown ms-lg-2">
 
-                        <button type="button"
-                                class="profile-toggle"
-                                data-bs-toggle="dropdown"
-                                data-bs-display="static"
+                            <button type="button" class="profile-toggle" data-bs-toggle="dropdown" data-bs-display="static"
                                 aria-expanded="false">
 
-                            <?php if (!empty($foto_profil)): ?>
+                                <?php if (!empty($foto_profil)): ?>
 
-                                <img src="<?= htmlspecialchars($foto_profil) ?>"
-                                     alt="Foto Profil"
-                                     class="profile-navbar">
+                                    <img src="<?= htmlspecialchars($foto_profil) ?>" alt="Foto Profil" class="profile-navbar">
 
-                            <?php else: ?>
+                                <?php else: ?>
 
-                                <i class="fa-solid fa-circle-user profile-icon"></i>
+                                    <i class="fa-solid fa-circle-user profile-icon"></i>
 
-                            <?php endif; ?>
+                                <?php endif; ?>
 
-                        </button>
+                            </button>
 
-                        <ul class="dropdown-menu dropdown-menu-end profile-dropdown">
-                            <li>
-                                <a class="dropdown-item text-danger" href="logout.php">
-                                    <i class="fa-solid fa-right-from-bracket me-2"></i>
-                                    Logout
-                                </a>
-                            </li>
-                        </ul>
+                            <ul class="dropdown-menu dropdown-menu-end profile-dropdown">
+                                <li>
+                                    <a class="dropdown-item text-danger" href="logout.php">
+                                        <i class="fa-solid fa-right-from-bracket me-2"></i>
+                                        Logout
+                                    </a>
+                                </li>
+                            </ul>
 
-                    </li>
+                        </li>
 
-                <?php else: ?>
+                    <?php else: ?>
 
-                    <li class="nav-item ms-lg-2">
-                        <a class="nav-link text-white" href="login.php">
-                            <i class="fa-solid fa-right-to-bracket me-1"></i>
-                            Login
-                        </a>
-                    </li>
+                        <li class="nav-item ms-lg-2">
+                            <a class="nav-link text-white" href="login.php">
+                                <i class="fa-solid fa-right-to-bracket me-1"></i>
+                                Login
+                            </a>
+                        </li>
 
-                <?php endif; ?>
+                    <?php endif; ?>
 
-            </ul>
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<div class="container py-5">
+    <div class="container py-5">
 
-    <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3 mb-4">
 
-        <div class="icon-kalender">
-            <i class="fa-solid fa-clock-rotate-left fa-2x"></i>
-        </div>
+            <div class="icon-kalender">
+                <i class="fa-solid fa-clock-rotate-left fa-2x"></i>
+            </div>
 
-        <div>
-            <h2 class="fw-bold mb-1">Progress Peminjaman</h2>
-            <p class="text-muted mb-0">
-                Pantau status pengajuan peminjaman fasilitas Anda di sini.
-            </p>
-        </div>
+            <div>
+                <h2 class="fw-bold mb-1">Progress Peminjaman</h2>
+                <p class="text-muted mb-0">
+                    Pantau status pengajuan peminjaman fasilitas Anda di sini.
+                </p>
+            </div>
 
-    </div>
-
-    <?php if (count($dataPeminjaman) == 0): ?>
-
-        <div class="alert alert-info">
-            Belum ada pengajuan peminjaman.
         </div>
 
-    <?php else: ?>
+        <?php if (count($dataPeminjaman) == 0): ?>
 
-        <?php foreach ($dataPeminjaman as $row): ?>
+            <div class="alert alert-info">
+                Belum ada pengajuan peminjaman.
+            </div>
 
-            <div class="card card-pinjam p-4">
+        <?php else: ?>
 
-                <div class="row align-items-center">
+            <?php foreach ($dataPeminjaman as $row): ?>
 
-                    <div class="col-md-8">
+                <div class="card card-pinjam p-4">
 
-                        <div class="d-flex align-items-center gap-3">
+                    <div class="row align-items-center">
 
-                            <div class="icon-kalender">
-                                <i class="fa-solid fa-calendar-day fa-2x"></i>
-                            </div>
+                        <div class="col-md-8">
 
-                            <div>
+                            <div class="d-flex align-items-center gap-3">
 
-                                <h5 class="fw-bold mb-1">
-                                    <?= htmlspecialchars($row['nama_ruangan'] ?? 'Ruangan tidak ditemukan') ?>
-                                </h5>
+                                <div class="icon-kalender">
+                                    <i class="fa-solid fa-calendar-day fa-2x"></i>
+                                </div>
 
-                                <h6 class="fw-bold mb-1">
-                                    ID Ruangan:
-                                    <?= htmlspecialchars($row['id_ruangan']) ?>
-                                </h6>
+                                <div>
 
-                                <p class="text-muted mb-0">
-                                    <i class="fa-solid fa-clock me-1"></i>
-                                    Tanggal Pinjam:
-                                    <?= htmlspecialchars($row['tgl_pinjam']) ?>
-                                    •
-                                    <?= htmlspecialchars($row['jam_mulai']) ?> -
-                                    <?= htmlspecialchars($row['jam_selesai']) ?>
-                                </p>
+                                    <h5 class="fw-bold mb-1">
+                                        <?= htmlspecialchars($row['nama_ruangan'] ?? 'Ruangan tidak ditemukan') ?>
+                                    </h5>
 
-                                <p class="text-muted mb-0">
-                                    <i class="fa-solid fa-file-pen me-1"></i>
-                                    Tujuan:
-                                    <?= htmlspecialchars($row['tujuan']) ?>
-                                </p>
+                                    <h6 class="fw-bold mb-1">
+                                        ID Ruangan:
+                                        <?= htmlspecialchars($row['id_ruangan']) ?>
+                                    </h6>
+
+                                    <p class="text-muted mb-0">
+                                        <i class="fa-solid fa-clock me-1"></i>
+                                        Tanggal Pinjam:
+                                        <?= htmlspecialchars($row['tgl_pinjam']) ?>
+                                        •
+                                        <?= htmlspecialchars($row['jam_mulai']) ?> -
+                                        <?= htmlspecialchars($row['jam_selesai']) ?>
+                                    </p>
+
+                                    <p class="text-muted mb-0">
+                                        <i class="fa-solid fa-file-pen me-1"></i>
+                                        Tujuan:
+                                        <?= htmlspecialchars($row['tujuan']) ?>
+                                    </p>
+
+                                </div>
 
                             </div>
 
                         </div>
 
-                    </div>
+                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
 
-                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                            <?php if ($row['status'] == 'Pending'): ?>
 
-                        <?php if ($row['status'] == 'Pending'): ?>
+                                <span class="badge-pending">
+                                    <i class="fa-solid fa-clock me-1"></i>
+                                    Menunggu Persetujuan Admin
+                                </span>
 
-                            <span class="badge-pending">
-                                <i class="fa-solid fa-clock me-1"></i>
-                                Menunggu Persetujuan Admin
-                            </span>
+                                <p class="text-muted small mt-2 mb-0">
+                                    Pengajuan Anda sedang diproses oleh admin.
+                                </p>
 
-                            <p class="text-muted small mt-2 mb-0">
-                                Pengajuan Anda sedang diproses oleh admin.
-                            </p>
+                            <?php elseif ($row['status'] == 'Disetujui'): ?>
 
-                        <?php elseif ($row['status'] == 'Disetujui'): ?>
+                                <span class="badge-approved">
+                                    <i class="fa-solid fa-circle-check me-1"></i>
+                                    Disetujui
+                                </span>
 
-                            <span class="badge-approved">
-                                <i class="fa-solid fa-circle-check me-1"></i>
-                                Disetujui
-                            </span>
+                                <p class="text-muted small mt-2 mb-0">
+                                    Pengajuan peminjaman Anda telah disetujui admin.
+                                </p>
 
-                            <p class="text-muted small mt-2 mb-0">
-                                Pengajuan peminjaman Anda telah disetujui admin.
-                            </p>
+                            <?php elseif ($row['status'] == 'Ditolak'): ?>
 
-                        <?php elseif ($row['status'] == 'Ditolak'): ?>
+                                <span class="badge-rejected">
+                                    <i class="fa-solid fa-circle-xmark me-1"></i>
+                                    Ditolak
+                                </span>
 
-                            <span class="badge-rejected">
-                                <i class="fa-solid fa-circle-xmark me-1"></i>
-                                Ditolak
-                            </span>
+                                <p class="text-muted small mt-2 mb-0">
+                                    Maaf, pengajuan peminjaman Anda ditolak oleh admin.
+                                </p>
 
-                            <p class="text-muted small mt-2 mb-0">
-                                Maaf, pengajuan peminjaman Anda ditolak oleh admin.
-                            </p>
+                            <?php elseif ($row['status'] == 'Selesai'): ?>
 
-                        <?php elseif ($row['status'] == 'Selesai'): ?>
+                                <span class="badge-finished">
+                                    <i class="fa-solid fa-flag-checkered me-1"></i>
+                                    Selesai
+                                </span>
 
-                            <span class="badge-finished">
-                                <i class="fa-solid fa-flag-checkered me-1"></i>
-                                Selesai
-                            </span>
+                                <p class="text-muted small mt-2 mb-0">
+                                    Peminjaman telah selesai.
+                                </p>
 
-                            <p class="text-muted small mt-2 mb-0">
-                                Peminjaman telah selesai.
-                            </p>
+                            <?php else: ?>
 
-                        <?php else: ?>
+                                <span class="badge-pending">
+                                    <?= htmlspecialchars($row['status']) ?>
+                                </span>
 
-                            <span class="badge-pending">
-                                <?= htmlspecialchars($row['status']) ?>
-                            </span>
+                            <?php endif; ?>
 
-                        <?php endif; ?>
+                        </div>
 
                     </div>
 
                 </div>
 
-            </div>
+            <?php endforeach; ?>
 
-        <?php endforeach; ?>
+        <?php endif; ?>
 
-    <?php endif; ?>
+        <div class="alert alert-light mt-4 border-0 rounded-3" style="background-color:#fff0f3;">
 
-    <div class="alert alert-light mt-4 border-0 rounded-3"
-         style="background-color:#fff0f3;">
+            <i class="fa-solid fa-circle-info me-2" style="color:#800000;"></i>
 
-        <i class="fa-solid fa-circle-info me-2"
-           style="color:#800000;"></i>
+            <span class="small fw-semibold">
+                Status akan diperbarui setelah admin memproses
+                pengajuan peminjaman.
+            </span>
 
-        <span class="small fw-semibold">
-            Status akan diperbarui setelah admin memproses
-            pengajuan peminjaman.
-        </span>
+        </div>
 
     </div>
 
-</div>
+    <footer class="py-3 mt-5">
+        <div class="container text-center small text-muted">
+            © 2026 Horizon University.
+            All rights reserved.
+            Together for a Better Future
+        </div>
+    </footer>
 
-<footer class="py-3 mt-5">
-    <div class="container text-center small text-muted">
-        © 2026 Horizon University.
-        All rights reserved.
-        Together for a Better Future
-    </div>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
+
 </html>
