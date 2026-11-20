@@ -2,15 +2,24 @@
 session_start();
 require_once "koneksi.php";
 
+// Pastikan user sudah login dan gunakan nama session yang sesuai dengan login.php
+if (empty($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$idPengguna = $_SESSION['user_id'];
+
 try {
-    
+    // Hanya mengambil data peminjaman milik pengguna yang sedang login
     $sql = "SELECT p.*, r.nama_ruangan
             FROM Peminjaman p
             LEFT JOIN Ruangan r ON p.id_ruangan = r.id_ruangan
+            WHERE p.id_pengguna = :id_pengguna
             ORDER BY p.tgl_pinjam DESC";
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute();
+    $stmt->execute([':id_pengguna' => $idPengguna]);
 
     $dataPeminjaman = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -77,7 +86,7 @@ try {
 
         .btn-progress {
             background-color: white;
-            color: var(--maroon)!important;
+            color: var(--maroon) !important;
             border-radius: 30px;
             font-weight: 700;
         }
@@ -117,7 +126,7 @@ try {
         .card-pinjam {
             border: none;
             border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             margin-bottom: 20px;
         }
 

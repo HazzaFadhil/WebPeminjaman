@@ -66,3 +66,53 @@ fadhil
 2. Lalu userflow Peminjaman diperbaiki, flowchart juga diperbaiki.
 3. lalu setelah pengubahan pada userflow dan flowchart diubah juga di laporan dan ppt
 4. Latar belakang tambahkan data
+
+
+=============================================================
+tahap git
+
+1. Selesaikan Bagian Anda Dulu (Jika Masih Ada yang Mau Ditambah)
+Kalau Anda masih mau melanjutkan fitur di branch Penyesuaian-admin sebelum digabung:
+
+git add .
+git commit -m "selesaikan penyesuaian admin"
+git push origin Penyesuaian-admin
+(Kalau yang barusan di-push sudah cukup untuk digabung sekarang, langkah ini bisa langsung dilewati).
+
+2. Gabungkan Kedua Branch ke main di GitHub (Pull Request)
+Buka halaman repository WebPeminjaman di GitHub:
+Gabungkan fitur-login dulu (atau Penyesuaian-admin dulu, urutannya bebas):
+
+Klik Compare & pull request pada branch fitur-login (atau masuk ke tab Pull requests->New pull request, pilih base: main<-compare: fitur-login).
+Klik Create pull request, cek sekilas perubahannya, lalu klik Merge pull request-> Confirm merge.
+
+Gabungkan branch kedua (Penyesuaian-admin) ke main:
+
+Lakukan hal yang sama: buat Pull Request dari Penyesuaian-admin ke main.
+
+Jika muncul tulisan Able to merge (hijau): Langsung klik Merge pull request->Confirm merge.
+
+Jika muncul Can't automatically merge (ada konflik karena mengedit baris yang sama): Tarik dulu main terbaru ke branch Penyesuaian-admin di lokal Anda, bereskan konfliknya di VS Code, lalu push lagi:
+
+git checkout main
+git pull origin main
+git checkout Penyesuaian-admin
+git merge main
+# (pilih kode yang dipakai di VS Code jika ada tanda bentrok, lalu simpan)
+git add .
+git commit -m "fix: selesaikan konflik dengan main"
+git push origin Penyesuaian-admin
+
+Setelah di-push, tombol Merge pull request di GitHub akan otomatis berubah hijau dan siap di-merge.
+
+3. Samakan Komputer Anda dan Teman Anda ke Versi Terbaru
+Begitu kedua branch tadi sudah resmi masuk ke main di GitHub, Anda dan teman Anda masing-masing cukup menjalankan dua perintah ini di terminal laptop masing-masing:
+
+git checkout main
+git pull origin main
+
+Setelah menjalankan itu:
+
+Folder proyek di laptop Anda maupun laptop teman Anda akan punya isi yang 100% identik (gabungan fitur-login + Penyesuaian-admin).
+
+Saat nanti mau lanjut bikin fitur berikutnya lagi, tinggal buat branch baru lagi dari main yang sudah bersih dan terbaru itu (git checkout -b nama-fitur-baru).

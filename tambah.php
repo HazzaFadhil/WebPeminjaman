@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 require_once 'koneksi.php';
@@ -9,9 +8,18 @@ $pesan_error = '';
 $selected_ruangan = isset($_GET['id_ruangan'])
     ? $_GET['id_ruangan'] : '';
 
+// 1. Cek login sejak awal halaman diakses
+if (empty($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$nama_ormawa_aktif = $_SESSION['nama_user'] ?? 'Organisasi / Pengguna';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $id_pengguna = trim($_POST['id_pengguna']);
+    // Kunci id_pengguna dari session user yang sedang login
+    $id_pengguna = $_SESSION['user_id'];
     $id_ruangan = trim($_POST['id_ruangan']);
     $tgl_pinjam = trim($_POST['tgl_pinjam']);
     $jam_mulai = trim($_POST['jam_mulai']);
@@ -99,13 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// AMBIL DATA PENGGUNA
-$stmt_pengguna = $pdo->query(
-    "SELECT * FROM Pengguna ORDER BY nama_ormawa ASC"
-);
-
-$list_pengguna = $stmt_pengguna->fetchAll(PDO::FETCH_ASSOC);
-
 // AMBIL SEMUA RUANGAN
 // Jangan membatasi hanya ruangan dengan ketersediaan Tersedia
 $stmt_ruangan = $pdo->query(
@@ -120,14 +121,16 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form Pengajuan Peminjaman — Horizon University</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -176,7 +179,7 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
         .form-card-container {
             background: #ffffff;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             overflow: hidden;
             margin-top: 40px;
             margin-bottom: 50px;
@@ -212,14 +215,16 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
             text-align: center;
         }
 
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             border-radius: 8px;
             padding: 10px 15px;
             border: 1px solid #ced4da;
             transition: all 0.2s;
         }
 
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             border-color: var(--horizon-maroon);
             box-shadow: 0 0 0 0.2rem rgba(128, 0, 0, 0.15);
         }
@@ -250,12 +255,14 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
         }
     </style>
 </head>
+
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-dark navbar-horizon sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="index.php">
-                <img src="asset/logohorizon-removebg-preview.png" alt="Logo" width="50" height="50" class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
+                <img src="asset/logohorizon-removebg-preview.png" alt="Logo" width="50" height="50"
+                    class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
                 <div>
                     HORIZON UNIVERSITY
                     <small>INDONESIA</small>
@@ -272,7 +279,8 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                     <li class="nav-item ms-lg-2">
                         <a class="nav-link btn btn-progress" href="progress.php">Progress</a>
                     </li>
-                    <li class="nav-item ms-lg-2"><a class="nav-link text-white" href="login.php"><i class="fa-solid fa-right-to-bracket me-1"></i> Login</a></li>
+                    <li class="nav-item ms-lg-2"><a class="nav-link text-white" href="login.php"><i
+                                class="fa-solid fa-right-to-bracket me-1"></i> Login</a></li>
                 </ul>
             </div>
         </div>
@@ -281,7 +289,7 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-9">
-            
+
                 <div class="form-card-container">
                     <div class="form-header-title d-flex align-items-center">
                         <i class="fa-solid fa-calendar-days fs-4 me-3"></i>
@@ -289,7 +297,7 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                     </div>
 
                     <div class="form-body-content">
-                    
+
                         <?php if (!empty($pesan_sukses)): ?>
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
                                 <i class="fa-solid fa-circle-check me-2"></i> <?= $pesan_sukses ?>
@@ -305,20 +313,16 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                         <?php endif ?>
 
                         <form method="POST" action="tambah.php">
-                        
+
                             <div class="row mb-4 align-items-center">
                                 <label class="col-md-4 form-label-custom">
                                     <i class="fa-solid fa-users"></i> Nama Organisasi/Kelompok
                                 </label>
                                 <div class="col-md-8">
-                                    <select name="id_pengguna" class="form-select" required>
-                                        <option value="">-- Pilih Organisasi / Ormawa --</option>
-                                        <?php foreach ($list_pengguna as $p): ?>
-                                            <option value="<?= $p['id_pengguna'] ?>">
-                                                <?= htmlspecialchars($p['nama_ormawa']) ?>
-                                            </option>
-                                        <?php endforeach ?>
-                                    </select>
+                                    <input type="text"
+                                        class="form-control bg-light"
+                                        value="<?= htmlspecialchars($nama_ormawa_aktif) ?>"
+                                        readonly>
                                 </div>
                             </div>
 
@@ -331,7 +335,9 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                                         <option value="">-- Pilih Ruangan / Fasilitas --</option>
                                         <?php foreach ($list_ruangan as $r): ?>
                                             <option value="<?= $r['id_ruangan'] ?>" <?= ($selected_ruangan == $r['id_ruangan']) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($r['nama_ruangan']) ?> (<?= htmlspecialchars($r['nama_gedung']) ?> - Kapasitas: <?= $r['kapasitas'] ?>)
+                                                <?= htmlspecialchars($r['nama_ruangan']) ?>
+                                                (<?= htmlspecialchars($r['nama_gedung']) ?> - Kapasitas:
+                                                <?= $r['kapasitas'] ?>)
                                             </option>
                                         <?php endforeach ?>
                                     </select>
@@ -370,7 +376,8 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
                                     <i class="fa-solid fa-file-lines"></i> Tujuan Penggunaan
                                 </label>
                                 <div class="col-md-8">
-                                    <textarea name="tujuan" rows="4" class="form-control" placeholder="Jelaskan tujuan penggunaan fasilitas..." required></textarea>
+                                    <textarea name="tujuan" rows="4" class="form-control"
+                                        placeholder="Jelaskan tujuan penggunaan fasilitas..." required></textarea>
                                 </div>
                             </div>
 
@@ -392,4 +399,5 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
