@@ -21,9 +21,18 @@ if ($is_login) {
 $selected_ruangan = isset($_GET['id_ruangan'])
     ? $_GET['id_ruangan'] : '';
 
+// 1. Cek login sejak awal halaman diakses
+if (empty($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$nama_ormawa_aktif = $_SESSION['nama_user'] ?? 'Organisasi / Pengguna';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $id_pengguna = trim($_POST['id_pengguna']);
+    // Kunci id_pengguna dari session user yang sedang login
+    $id_pengguna = $_SESSION['user_id'];
     $id_ruangan = trim($_POST['id_ruangan']);
     $tgl_pinjam = trim($_POST['tgl_pinjam']);
     $jam_mulai = trim($_POST['jam_mulai']);
@@ -111,13 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// AMBIL DATA PENGGUNA
-$stmt_pengguna = $pdo->query(
-    "SELECT * FROM Pengguna ORDER BY nama_ormawa ASC"
-);
-
-$list_pengguna = $stmt_pengguna->fetchAll(PDO::FETCH_ASSOC);
-
 // AMBIL SEMUA RUANGAN
 // Jangan membatasi hanya ruangan dengan ketersediaan Tersedia
 $stmt_ruangan = $pdo->query(
@@ -132,6 +134,7 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -139,7 +142,8 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <style>
         body {
@@ -233,7 +237,7 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
         .form-card-container {
             background: #ffffff;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             overflow: hidden;
             margin-top: 40px;
             margin-bottom: 50px;
@@ -312,6 +316,140 @@ $list_ruangan = $stmt_ruangan->fetchAll(PDO::FETCH_ASSOC);
 
 <body>
 
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-horizon sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.php">
+                <img src="asset/logohorizon-removebg-preview.png" alt="Logo" width="50" height="50"
+                    class="me-2 d-inline-block align-text-top object-fit-contain" onerror="this.style.display='none'">
+                <div>
+                    HORIZON UNIVERSITY
+                    <small>INDONESIA</small>
+                </div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="index.php">Beranda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="ruangan.php">Ruangan</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="tambah.php">Peminjaman</a></li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="nav-link btn btn-progress" href="progress.php">Progress</a>
+                    </li>
+                    <li class="nav-item ms-lg-2"><a class="nav-link text-white" href="login.php"><i
+                                class="fa-solid fa-right-to-bracket me-1"></i> Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+
+                <div class="form-card-container">
+                    <div class="form-header-title d-flex align-items-center">
+                        <i class="fa-solid fa-calendar-days fs-4 me-3"></i>
+                        <span>Form Pengajuan Peminjaman Fasilitas — Horizon University</span>
+                    </div>
+
+                    <div class="form-body-content">
+
+                        <?php if (!empty($pesan_sukses)): ?>
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fa-solid fa-circle-check me-2"></i> <?= $pesan_sukses ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        <?php endif ?>
+
+                        <?php if (!empty($pesan_error)): ?>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fa-solid fa-triangle-exclamation me-2"></i> <?= $pesan_error ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        <?php endif ?>
+
+                        <form method="POST" action="tambah.php">
+
+                            <div class="row mb-4 align-items-center">
+                                <label class="col-md-4 form-label-custom">
+                                    <i class="fa-solid fa-users"></i> Nama Organisasi/Kelompok
+                                </label>
+                                <div class="col-md-8">
+                                    <input type="text"
+                                        class="form-control bg-light"
+                                        value="<?= htmlspecialchars($nama_ormawa_aktif) ?>"
+                                        readonly>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4 align-items-center">
+                                <label class="col-md-4 form-label-custom">
+                                    <i class="fa-solid fa-door-open"></i> Pilih Ruangan
+                                </label>
+                                <div class="col-md-8">
+                                    <select name="id_ruangan" class="form-select" required>
+                                        <option value="">-- Pilih Ruangan / Fasilitas --</option>
+                                        <?php foreach ($list_ruangan as $r): ?>
+                                            <option value="<?= $r['id_ruangan'] ?>" <?= ($selected_ruangan == $r['id_ruangan']) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($r['nama_ruangan']) ?>
+                                                (<?= htmlspecialchars($r['nama_gedung']) ?> - Kapasitas:
+                                                <?= $r['kapasitas'] ?>)
+                                            </option>
+                                        <?php endforeach ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4 align-items-center">
+                                <label class="col-md-4 form-label-custom">
+                                    <i class="fa-solid fa-calendar-alt"></i> Tanggal Peminjaman
+                                </label>
+                                <div class="col-md-8">
+                                    <input type="date" name="tgl_pinjam" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4 align-items-center">
+                                <label class="col-md-4 form-label-custom">
+                                    <i class="fa-solid fa-clock"></i> Jam Mulai
+                                </label>
+                                <div class="col-md-8">
+                                    <input type="time" name="jam_mulai" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4 align-items-center">
+                                <label class="col-md-4 form-label-custom">
+                                    <i class="fa-solid fa-clock-rotate-left"></i> Jam Selesai
+                                </label>
+                                <div class="col-md-8">
+                                    <input type="time" name="jam_selesai" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="row mb-4 align-items-start">
+                                <label class="col-md-4 form-label-custom pt-2">
+                                    <i class="fa-solid fa-file-lines"></i> Tujuan Penggunaan
+                                </label>
+                                <div class="col-md-8">
+                                    <textarea name="tujuan" rows="4" class="form-control"
+                                        placeholder="Jelaskan tujuan penggunaan fasilitas..." required></textarea>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-8 offset-md-4">
+                                    <button type="submit" class="btn-submit-horizon">
+                                        <i class="fa-solid fa-paper-plane me-2"></i> Kirim Pengajuan
+                                    </button>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
 <nav class="navbar navbar-expand-lg navbar-dark navbar-horizon sticky-top">
     <div class="container">
 
